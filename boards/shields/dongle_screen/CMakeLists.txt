@@ -18,4 +18,8 @@ if(CONFIG_SHIELD_DONGLE_SCREEN)
   zephyr_library_sources(src/widgets/mod_status.c)
   file(GLOB font_sources src/fonts/*.c)
   zephyr_library_sources(${font_sources})
+  
+  if(CONFIG_DONGLE_SCREEN_TOUCH_ENABLED)
+    target_sources(app PRIVATE touch_handler.c)
+  endif()
 endif()
