@@ -216,4 +216,13 @@ config DONGLE_SCREEN_SYSTEM_ICON
     help
         The icon to display when the 'LGUI'/'RGUI' is pressed. Can be used to better match the Mod Widget to the underlying system.
         (0: macOS, 1: Linux, 2: Windows)
+
+config DONGLE_SCREEN_TOUCH_ENABLED
+    bool "Enable CST816S touch swipe navigation"
+    default n
+    select INPUT
+    select INPUT_CST816S
+    help
+      Enable 4-direction swipe gesture navigation via CST816S.
+      Requires irq-gpios and rst-gpios wiring to the XIAO BLE.
 endif
