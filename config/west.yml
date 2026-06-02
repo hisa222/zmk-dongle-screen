@@ -2,9 +2,16 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
+    - name: hisa222
+      url-base: https://github.com/hisa222
   projects:
-    - name: zmk
-      remote: zmkfirmware
+    #- name: zmk
+      #remote: zmkfirmware
+      #revision: main
+      #import: app/west.yml
+    - name: zmk-v0.3
+      # remote: zmkfirmware
+      remote: hisa222
       revision: main
       import: app/west.yml
   self:
