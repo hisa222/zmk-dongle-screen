@@ -169,7 +169,7 @@ config DONGLE_SCREEN_BATTERY_ACTIVE
     help
       If the Battery Widget should be active or not
 
-config CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+config DONGLE_SCREEN_BONGO_CAT_ACTIVE
     bool "BongoCat Widget active"
     default y
     help
