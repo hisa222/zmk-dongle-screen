@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 #include "custom_status_screen.h"
-#include "swipe_gesture_event.h"
+#include "events/swipe_gesture_event.h"
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
 #include "widgets/output_status.h"
