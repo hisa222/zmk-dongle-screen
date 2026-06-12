@@ -32,7 +32,7 @@ static struct zmk_widget_wpm_status wpm_status_widget;
 static struct zmk_widget_mod_status mod_widget;
 #endif
 
-#if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 #include "widgets/bongo_cat.h"
 static struct zmk_widget_bongo_cat bongo_cat_widget;
 #endif
