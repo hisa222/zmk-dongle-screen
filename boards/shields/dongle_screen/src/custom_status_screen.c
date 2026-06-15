@@ -47,6 +47,17 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static lv_obj_t *screens[SCREEN_COUNT];
 static int current_screen_index = 0;
 
+/* lv_async_call のコールバック — LVGLタスク内で実行されるため安全 */
+static void do_screen_switch(void *arg) {
+    int index = (int)(intptr_t)arg;
+    if (index < 0 || index >= SCREEN_COUNT || screens[index] == NULL) {
+        return;
+    }
+    current_screen_index = index;
+    lv_scr_load(screens[index]);
+    LOG_DBG("Switched to screen %d", index);
+}
+
 static void switch_to_screen(int index) {
     if (index < 0 || index >= SCREEN_COUNT) {
         return;
@@ -55,9 +66,10 @@ static void switch_to_screen(int index) {
         LOG_WRN("Screen %d is not initialized", index);
         return;
     }
-    current_screen_index = index;
-    lv_scr_load(screens[index]);
-    LOG_DBG("Switched to screen %d", index);
+    /* ZMKイベントハンドラは別スレッドで動くため lv_async_call で委譲する */
+    // lv_scr_load(screens[index]);
+    lv_async_call(do_screen_switch, (void *)(intptr_t)index);
+    LOG_DBG("Screen switch requested: %d", index);
 }
 
 static void switch_to_next_screen(void) {
@@ -145,7 +157,7 @@ static lv_obj_t *create_bongo_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
     init_screen_base(screen);
 
-#if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_BONGO_CAT)
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     zmk_widget_bongo_cat_init(&bongo_cat_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_cat_widget), LV_ALIGN_CENTER, 0, 0);
 #endif
