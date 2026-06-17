@@ -93,7 +93,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_left1 = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
@@ -137,7 +137,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_left2 = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
@@ -181,7 +181,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_right1 = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
@@ -225,7 +225,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_right2 = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
@@ -269,7 +269,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_both1 = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
@@ -313,7 +313,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_both1_open = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
@@ -357,7 +357,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 };
 
 const lv_img_dsc_t bongo_cat_both2 = {
-  .header.cf = LV_COLOR_FORMAT_I1,
+  .header.cf = LV_IMG_CF_INDEXED_1BIT,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
