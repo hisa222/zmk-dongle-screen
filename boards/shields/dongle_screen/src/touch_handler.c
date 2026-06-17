@@ -252,7 +252,8 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
 }
 
 // Input callback registration macro (Zephyr 4.x requires 3 args: dev, callback, user_data)
-INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(TOUCH_NODE), touch_input_callback, NULL);
+// INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(TOUCH_NODE), touch_input_callback, NULL);
+INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(TOUCH_NODE), touch_input_callback);
 
 // LVGL input device read callback (LVGL 9 API)
 // COORDINATE TRANSFORM:
