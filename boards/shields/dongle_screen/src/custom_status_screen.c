@@ -91,6 +91,7 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh) {
         return -ENOTSUP;
     }
     LOG_DBG("Swipe event: direction=%d", ev->direction);
+/*
     switch (ev->direction) {
     case SWIPE_DIRECTION_LEFT:
         switch_to_next_screen();
@@ -100,6 +101,20 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh) {
         break;
     case SWIPE_DIRECTION_DOUBLE_TAP:
         request_screen_switch(0);
+        break;
+    default:
+        break;
+    }
+*/
+    switch (ev->direction) {
+    case SWIPE_DIRECTION_LEFT:
+        lv_scr_load(screens[1]);
+        break;
+    case SWIPE_DIRECTION_RIGHT:
+        lv_scr_load(screens[0]);
+        break;
+    case SWIPE_DIRECTION_DOUBLE_TAP:
+        lv_scr_load(screens[0]);
         break;
     default:
         break;
