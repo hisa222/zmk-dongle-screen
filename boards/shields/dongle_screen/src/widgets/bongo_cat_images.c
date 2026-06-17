@@ -49,7 +49,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_BONGO_CAT
 
 const lv_img_dsc_t bongo_cat_none = {
 //  .header.cf = LV_COLOR_FORMAT_I1,
-  .header.cf = LV_COLOR_FORMAT_I1_COMPRESSED,
+  .header.cf = LV_COLOR_SET_A1,
   .header.w = 50,
   .header.h = 26,
   .data_size = 190,
