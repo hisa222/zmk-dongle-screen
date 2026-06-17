@@ -37,6 +37,7 @@ static struct zmk_widget_mod_status mod_widget;
 static struct zmk_widget_bongo_cat bongo_cat_widget;
 #endif
 
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -47,37 +48,46 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 static lv_obj_t *screens[SCREEN_COUNT];
 static int current_screen_index = 0;
 
-/* lv_async_call のコールバック — LVGLタスク内で実行されるため安全 */
-static void do_screen_switch(void *arg) {
-    int index = (int)(intptr_t)arg;
+/* ── k_work によるスレッドセーフなスクリーン切り替え ─────────
+ *
+ * ZMKイベントハンドラはZMKのシステムスレッドで動く。
+ * LVGLはディスプレイスレッド専用のため、直接 lv_scr_load() を
+ * 呼ぶと競合する。k_work でディスプレイスレッドのワークキューに
+ * 投入し、ZMK display タスクが next_screen_index を見て切り替える。
+ * ─────────────────────────────────────────────────────────── */
+
+static int next_screen_index = -1;  /* -1 = 切り替えなし */
+static struct k_work screen_switch_work;
+
+/* ディスプレイスレッドのワークキュー（ZMKが用意したもの）を使う */
+extern struct k_work_q k_sys_work_q;
+
+static void screen_switch_work_handler(struct k_work *work) {
+    int index = next_screen_index;
     if (index < 0 || index >= SCREEN_COUNT || screens[index] == NULL) {
+        LOG_WRN("Invalid screen index: %d", index);
         return;
     }
     current_screen_index = index;
     lv_scr_load(screens[index]);
-    LOG_DBG("Switched to screen %d", index);
+    LOG_DBG("Screen switched to %d", index);
 }
 
-static void switch_to_screen(int index) {
+static void request_screen_switch(int index) {
     if (index < 0 || index >= SCREEN_COUNT) {
         return;
     }
-    if (screens[index] == NULL) {
-        LOG_WRN("Screen %d is not initialized", index);
-        return;
-    }
-    /* ZMKイベントハンドラは別スレッドで動くため lv_async_call で委譲する */
-    // lv_scr_load(screens[index]);
-    lv_async_call(do_screen_switch, (void *)(intptr_t)index);
+    next_screen_index = index;
+    k_work_submit(&screen_switch_work);
     LOG_DBG("Screen switch requested: %d", index);
 }
 
 static void switch_to_next_screen(void) {
-    switch_to_screen((current_screen_index + 1) % SCREEN_COUNT);
+    request_screen_switch((current_screen_index + 1) % SCREEN_COUNT);
 }
 
 static void switch_to_prev_screen(void) {
-    switch_to_screen((current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT);
+    request_screen_switch((current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT);
 }
 
 /* ── スワイプイベントリスナー ───────────────────────────────── */
@@ -87,6 +97,7 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh) {
     if (ev == NULL) {
         return -ENOTSUP;
     }
+    LOG_DBG("Swipe event: direction=%d", ev->direction);
     switch (ev->direction) {
     case SWIPE_DIRECTION_LEFT:
         switch_to_next_screen();
@@ -95,7 +106,7 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh) {
         switch_to_prev_screen();
         break;
     case SWIPE_DIRECTION_DOUBLE_TAP:
-        switch_to_screen(0);
+        request_screen_switch(0);
         break;
     default:
         break;
@@ -116,7 +127,7 @@ static void init_screen_base(lv_obj_t *screen) {
     lv_obj_add_style(screen, &global_style, LV_PART_MAIN);
 }
 
-/* ── スクリーン 0：メインステータス（大本そのまま） ─────────── */
+/* ── スクリーン 0：メインステータス ────────────────────────── */
 
 static lv_obj_t *create_main_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
@@ -168,6 +179,8 @@ static lv_obj_t *create_bongo_screen(void) {
 /* ── エントリーポイント ─────────────────────────────────────── */
 
 lv_obj_t *zmk_display_status_screen(void) {
+    k_work_init(&screen_switch_work, screen_switch_work_handler);
+
     lv_style_init(&global_style);
     // lv_style_set_text_font(&global_style, &lv_font_unscii_8); // ToDo: Font is not recognized
     lv_style_set_text_color(&global_style, lv_color_white());
