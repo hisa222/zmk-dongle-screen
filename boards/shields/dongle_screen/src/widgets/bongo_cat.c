@@ -143,9 +143,22 @@ ZMK_DISPLAY_WIDGET_LISTENER(widget_bongo_cat, struct bongo_cat_wpm_status_state,
 ZMK_SUBSCRIPTION(widget_bongo_cat, zmk_wpm_state_changed);
 
 int zmk_widget_bongo_cat_init(struct zmk_widget_bongo_cat *widget, lv_obj_t *parent) {
-    widget->obj = lv_animimg_create(parent);
-    lv_obj_set_size(widget->obj, 120, 80);
-    lv_obj_center(widget->obj);
+widget->obj = lv_animimg_create(parent);
+
+lv_obj_center(widget->obj);
+
+sys_slist_append(&widgets, &widget->node);
+
+widget_bongo_cat_init();
+
+/* 追加 */
+lv_animimg_set_src(widget->obj, SRC(idle_imgs));
+lv_animimg_start(widget->obj);
+
+lv_obj_t *img = lv_obj_get_child(widget->obj, 0);
+if (img) {
+    lv_img_set_zoom(img, 1024);
+}
     return 0;
 }
 
