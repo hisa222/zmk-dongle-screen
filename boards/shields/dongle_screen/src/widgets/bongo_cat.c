@@ -157,7 +157,7 @@ lv_animimg_start(widget->obj);
 
 lv_obj_t *img = lv_obj_get_child(widget->obj, 0);
 if (img) {
-    lv_img_set_zoom(img, 1024);
+    lv_img_set_zoom(img, 768); //256 x n
 }
     return 0;
 }
