@@ -179,7 +179,7 @@ static lv_obj_t *create_bongo_screen(void) {
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     zmk_widget_bongo_cat_init(&bongo_cat_widget, screen);
     // lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_cat_widget), LV_ALIGN_CENTER, 0, 0);
-    lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_cat_widget), LV_ALIGN_BUTTOM, 0, 0);
+    lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_cat_widget), LV_ALIGN_BOTTOM_MID, 0, 0);
 #endif
 
     return screen;
