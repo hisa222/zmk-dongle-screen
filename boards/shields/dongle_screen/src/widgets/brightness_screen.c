@@ -47,10 +47,7 @@ static void slider_pressed_cb(lv_event_t *e)
 static void slider_released_cb(lv_event_t *e)
 {
     slider_dragging = false;
-
-    display_settings_set_manual_brightness(
-        pending_brightness);
-
+    display_settings_set_manual_brightness(pending_brightness);
     display_settings_save_if_dirty();
 }
 
