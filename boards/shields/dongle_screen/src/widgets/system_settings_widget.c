@@ -37,6 +37,7 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
 
     /* LVGL8: lv_obj_create はデフォルトで CLICKABLE。念のため明示。 */
     lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_PRESS_LOCK);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_set_style_bg_color(obj, bg, LV_STATE_DEFAULT);
@@ -63,14 +64,14 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
 
 static void bootloader_cb(lv_event_t *e)
 {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (lv_event_get_code(e) != LV_EVENT_SHORT_CLICKED) return;
     LOG_INF("Enter UF2 bootloader");
     sys_reboot(0x57);
 }
 
 static void reset_cb(lv_event_t *e)
 {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (lv_event_get_code(e) != LV_EVENT_SHORT_CLICKED) return;
     LOG_INF("System warm reset");
     sys_reboot(SYS_REBOOT_WARM);
 }
@@ -103,8 +104,8 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         lv_color_hex(0x4A90E2), lv_color_hex(0x357ABD),
         LV_ALIGN_CENTER, 0, -44);
     if (!widget->bootloader_btn) return -ENOMEM;
-    lv_obj_add_event_cb(widget->bootloader_btn, bootloader_cb,
-                        LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(widget->bootloader_btn,
+                      bootloader_cb, LV_EVENT_SHORT_CLICKED, NULL);
 
     /* ---- System Reset ボタン ---- */
     widget->reset_btn = make_btn(
@@ -112,8 +113,8 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         lv_color_hex(0xE24A4A), lv_color_hex(0xC93A3A),
         LV_ALIGN_CENTER, 0, 36);
     if (!widget->reset_btn) return -ENOMEM;
-    lv_obj_add_event_cb(widget->reset_btn, reset_cb,
-                        LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(widget->reset_btn,
+                    reset_cb, LV_EVENT_SHORT_CLICKED, NULL);
 
     /* ---- ナビゲーションヒント ---- */
     widget->nav_hint = lv_label_create(parent);
