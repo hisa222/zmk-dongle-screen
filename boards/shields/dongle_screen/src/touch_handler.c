@@ -314,15 +314,16 @@ int touch_handler_register_lvgl_indev(void) {
         return 0;
     }
 
-    // Register LVGL input device for touch events (LVGL 9 API)
-    lvgl_indev = lv_indev_create();
+    // Register LVGL input device for touch events (LVGL 8 API)
+    static lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type    = LV_INDEV_TYPE_POINTER;
+    indev_drv.read_cb = lvgl_input_read;
+    lvgl_indev = lv_indev_drv_register(&indev_drv);
     if (!lvgl_indev) {
-        LOG_ERR("Failed to create LVGL input device");
+        LOG_ERR("Failed to register LVGL input device");
         return -ENOMEM;
     }
-
-    lv_indev_set_type(lvgl_indev, LV_INDEV_TYPE_POINTER);
-    lv_indev_set_read_cb(lvgl_indev, lvgl_input_read);
 
     LOG_INF("LVGL input device registered for touch events");
 
