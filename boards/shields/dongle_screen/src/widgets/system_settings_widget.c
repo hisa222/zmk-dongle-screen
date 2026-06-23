@@ -32,7 +32,7 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
     lv_obj_t *obj = lv_obj_create(parent);
     if (!obj) return NULL;
 
-    lv_obj_set_size(obj, 160, 64);
+    lv_obj_set_size(obj, 220, 64);
     lv_obj_align(obj, align, x_off, y_off);
 
     /* LVGL8: lv_obj_create はデフォルトで CLICKABLE。念のため明示。 */
