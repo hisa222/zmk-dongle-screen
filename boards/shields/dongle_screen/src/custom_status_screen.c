@@ -5,16 +5,17 @@
  * カスタムステータス画面
  *
  * スクリーン構成:
- *   screens[0] = メイン（ステータス表示）
+ *   screens[0] = メイン
  *   screens[1] = ボンゴキャット
- *   screens[2] = 輝度設定（スライダー）   ← 追加
- *   screens[3] = クイックアクション        ← 追加
- *                (Bootloader / System Reset)
+ *   screens[2] = 輝度設定（スライダー）
+ *   screens[3] = クイックアクション（Bootloader / Reset）
  *
- * スワイプ操作:
- *   左スワイプ → 次の画面（ループ）
- *   右スワイプ → 前の画面（ループ）
- *   ダブルタップ → メイン画面へ戻る
+ * スワイプ: 左→次画面、右→前画面、ダブルタップ→メイン
+ *
+ * 設計方針:
+ *   各スクリーンは lv_obj_create(NULL) で作成し、
+ *   ウィジェットはスクリーンを直接 parent として渡す。
+ *   中間コンテナを挟まない（タッチイベント伝播の問題を回避）。
  */
 
 #include "custom_status_screen.h"
@@ -53,8 +54,8 @@ static struct zmk_widget_mod_status mod_widget;
 static struct zmk_widget_bongo_cat bongo_cat_widget;
 #endif
 
-static struct zmk_widget_brightness_screen    brightness_widget;
-static struct zmk_widget_system_settings      system_settings_widget;
+static struct zmk_widget_brightness_screen   brightness_widget;
+static struct zmk_widget_system_settings     system_settings_widget;
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -65,12 +66,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 /* ================================================================== */
 
 #define SCREEN_COUNT 4
-/*
- * 0: Main
- * 1: BongoCat
- * 2: Brightness
- * 3: QuickActions (Bootloader/Reset)
- */
 
 static lv_obj_t *screens[SCREEN_COUNT];
 static int current_screen_index = 0;
@@ -102,7 +97,6 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh)
 
     if (next == current_screen_index) return ZMK_EV_EVENT_BUBBLE;
 
-    LOG_INF("Screen: %d -> %d", current_screen_index, next);
     current_screen_index = next;
     lv_scr_load(screens[next]);
 
@@ -118,11 +112,13 @@ ZMK_SUBSCRIPTION(swipe_gesture_screen, zmk_swipe_gesture_event);
 
 lv_style_t global_style;
 
-static void init_screen_base(lv_obj_t *screen)
+static lv_obj_t *make_screen(void)
 {
+    lv_obj_t *screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(screen, 255, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_add_style(screen, &global_style, LV_PART_MAIN);
+    return screen;
 }
 
 /* ================================================================== */
@@ -131,8 +127,7 @@ static void init_screen_base(lv_obj_t *screen)
 
 static lv_obj_t *create_main_screen(void)
 {
-    lv_obj_t *screen = lv_obj_create(NULL);
-    init_screen_base(screen);
+    lv_obj_t *screen = make_screen();
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
@@ -173,8 +168,7 @@ static lv_obj_t *create_main_screen(void)
 
 static lv_obj_t *create_bongo_screen(void)
 {
-    lv_obj_t *screen = lv_obj_create(NULL);
-    init_screen_base(screen);
+    lv_obj_t *screen = make_screen();
 
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     zmk_widget_bongo_cat_init(&bongo_cat_widget, screen);
@@ -191,27 +185,24 @@ static lv_obj_t *create_bongo_screen(void)
 
 static lv_obj_t *create_brightness_screen(void)
 {
-    lv_obj_t *screen = lv_obj_create(NULL);
-    init_screen_base(screen);
-
+    /*
+     * brightness_widget はスクリーン自体を parent として使う。
+     * init 内部では lv_obj_create(parent) でコンテナを作らず、
+     * 全要素を直接 parent (= このスクリーン) に配置する。
+     */
+    lv_obj_t *screen = make_screen();
     zmk_widget_brightness_screen_init(&brightness_widget, screen);
-    zmk_widget_brightness_screen_show(&brightness_widget);
-
     return screen;
 }
 
 /* ================================================================== */
-/* screens[3]: クイックアクション (Bootloader / Reset)                */
+/* screens[3]: クイックアクション                                      */
 /* ================================================================== */
 
 static lv_obj_t *create_system_settings_screen(void)
 {
-    lv_obj_t *screen = lv_obj_create(NULL);
-    init_screen_base(screen);
-
+    lv_obj_t *screen = make_screen();
     zmk_widget_system_settings_init(&system_settings_widget, screen);
-    zmk_widget_system_settings_show(&system_settings_widget);
-
     return screen;
 }
 
@@ -221,7 +212,6 @@ static lv_obj_t *create_system_settings_screen(void)
 
 lv_obj_t *zmk_display_status_screen(void)
 {
-    /* NVS 輝度ロード（スクリーン生成前に呼ぶ） */
     display_settings_init();
 
     lv_style_init(&global_style);
