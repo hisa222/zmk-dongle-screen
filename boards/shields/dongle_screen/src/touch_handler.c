@@ -209,10 +209,10 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
                     int16_t abs_dx = (dx < 0) ? -dx : dx;
                     int16_t abs_dy = (dy < 0) ? -dy : dy;
 
-                    if (abs_dy > abs_dx && abs_dy > SWIPE_THRESHOLD) {
+                    if (abs_dy > (abs_dx * 3 / 2) && abs_dy > SWIPE_THRESHOLD) {
                         LOG_INF("SW SWIPE: %s (dy=%d)", dy > 0 ? "DOWN" : "UP", dy);
                         raise_swipe_event(dy > 0 ? SWIPE_DIRECTION_DOWN : SWIPE_DIRECTION_UP);
-                    } else if (abs_dx > abs_dy && abs_dx > SWIPE_THRESHOLD) {
+                    } else if (abs_dx > (abs_dy * 3 / 2) && abs_dx > SWIPE_THRESHOLD) {
                         LOG_INF("SW SWIPE: %s (dx=%d)", dx > 0 ? "RIGHT" : "LEFT", dx);
                         raise_swipe_event(dx > 0 ? SWIPE_DIRECTION_RIGHT : SWIPE_DIRECTION_LEFT);
                     } else if (abs_dx <= DOUBLE_TAP_THRESHOLD && abs_dy <= DOUBLE_TAP_THRESHOLD) {
