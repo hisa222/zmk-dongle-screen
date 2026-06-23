@@ -4,8 +4,10 @@
  *
  * System Settings Widget - Bootloader / System Reset
  *
- * LV_USE_BTN が有効でないため lv_obj + LV_OBJ_FLAG_CLICKABLE で代替。
- * フォントは montserrat_20 / montserrat_40 のみ使用。
+ * LV_USE_BTN が無効なため lv_obj + LV_OBJ_FLAG_CLICKABLE で代替。
+ *
+ * 重要: widget->obj コンテナは LV_OBJ_FLAG_CLICKABLE を持たない。
+ * コンテナが CLICKABLE だと子ボタンへのタップを吸収してしまうため。
  */
 
 #include "system_settings_widget.h"
@@ -33,6 +35,8 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
 
     lv_obj_set_size(obj, 220, 64);
     lv_obj_align(obj, align, x_off, y_off);
+
+    /* LVGL8: lv_obj_create は デフォルトで CLICKABLE を持つが明示しておく */
     lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
@@ -42,12 +46,13 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
     lv_obj_set_style_radius(obj, 12, LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(obj, 0, LV_STATE_DEFAULT);
     lv_obj_set_style_pad_all(obj, 0, LV_STATE_DEFAULT);
-    lv_obj_set_style_shadow_width(obj, 0, LV_STATE_DEFAULT);
 
+    /* ラベルはクリック不要 — イベントはボタン obj で受け取る */
     lv_obj_t *lbl = lv_label_create(obj);
     lv_label_set_text(lbl, text);
     lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, LV_STATE_DEFAULT);
+    lv_obj_clear_flag(lbl, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_center(lbl);
 
     return obj;
@@ -60,7 +65,7 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
 static void bootloader_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    LOG_INF("Entering UF2 bootloader");
+    LOG_INF("Enter UF2 bootloader");
     sys_reboot(0x57); /* DFU_MAGIC_UF2_RESET */
 }
 
@@ -88,6 +93,8 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     lv_obj_set_size(widget->obj, LV_HOR_RES, LV_VER_RES);
     lv_obj_set_pos(widget->obj, 0, 0);
     lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_SCROLLABLE);
+    /* コンテナはクリック不要 — ボタン obj のみクリック可にする */
+    lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_color(widget->obj, lv_color_hex(0x0A0A0A), LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(widget->obj, LV_OPA_COVER, LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(widget->obj, 0, LV_STATE_DEFAULT);
@@ -102,7 +109,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
-    /* ---- Bootloader ボタン (青) ---- */
+    /* ---- Bootloader ボタン ---- */
     widget->bootloader_btn = make_btn(
         widget->obj, "Enter Bootloader",
         lv_color_hex(0x4A90E2), lv_color_hex(0x357ABD),
@@ -111,7 +118,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     lv_obj_add_event_cb(widget->bootloader_btn, bootloader_cb,
                         LV_EVENT_CLICKED, NULL);
 
-    /* ---- System Reset ボタン (赤) ---- */
+    /* ---- System Reset ボタン ---- */
     widget->reset_btn = make_btn(
         widget->obj, "System Reset",
         lv_color_hex(0xE24A4A), lv_color_hex(0xC93A3A),
@@ -122,17 +129,14 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
 
     /* ---- ナビゲーションヒント ---- */
     widget->nav_hint = lv_label_create(widget->obj);
-    lv_label_set_text(widget->nav_hint,
-                      LV_SYMBOL_LEFT " swipe " LV_SYMBOL_RIGHT);
+    lv_label_set_text(widget->nav_hint, "< swipe >");
     lv_obj_set_style_text_color(widget->nav_hint,
-                                lv_color_hex(0x555555), LV_STATE_DEFAULT);
+                                lv_color_hex(0x444444), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->nav_hint,
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->nav_hint, LV_ALIGN_BOTTOM_MID, 0, -10);
 
-    /* 初期状態は非表示 */
     lv_obj_add_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
-
     LOG_INF("system_settings_widget: init done");
     return 0;
 }
