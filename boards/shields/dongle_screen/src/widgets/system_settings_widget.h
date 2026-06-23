@@ -1,8 +1,6 @@
 /*
  * Copyright (c) 2024 The ZMK Contributors
  * SPDX-License-Identifier: MIT
- *
- * System Settings Widget (Bootloader / Reset)
  */
 
 #pragma once
@@ -10,7 +8,7 @@
 #include <lvgl.h>
 
 struct zmk_widget_system_settings {
-    lv_obj_t *obj;
+    lv_obj_t *obj;              /* = parent そのもの（コンテナなし）*/
     lv_obj_t *title_label;
     lv_obj_t *bootloader_btn;
     lv_obj_t *reset_btn;
