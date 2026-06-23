@@ -2,98 +2,108 @@
  * Copyright (c) 2024 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  *
- * System Settings Widget - Bootloader / System Reset
+ * Brightness Screen Widget
  *
- * LV_USE_BTN が無効なため lv_obj + LV_OBJ_FLAG_CLICKABLE で代替。
- *
- * 重要: widget->obj コンテナは LV_OBJ_FLAG_CLICKABLE を持たない。
- * コンテナが CLICKABLE だと子ボタンへのタップを吸収してしまうため。
+ * LVGL8 ネイティブスライダーを使用。
+ * カスタムドラッグロジックは使わず、LV_EVENT_VALUE_CHANGED のみ受け取る。
+ * 縦スワイプとの競合は display_settings_is_interacting() weak オーバーライドで対処。
  */
 
-#include "system_settings_widget.h"
+#include "brightness_screen.h"
+#include "../display_settings.h"
 
 #include <zephyr/logging/log.h>
-#include <zephyr/sys/reboot.h>
-#include <string.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-/* ================================================================== */
-/* ボタン作成ヘルパー                                                  */
-/* ================================================================== */
+/* brightness.c で定義 (non-static) */
+extern void set_screen_brightness(uint8_t value, bool ambient);
 
-static lv_obj_t *make_btn(lv_obj_t *parent,
-                           const char *text,
-                           lv_color_t bg,
-                           lv_color_t bg_pressed,
-                           lv_align_t align,
-                           lv_coord_t x_off,
-                           lv_coord_t y_off)
+/* ------------------------------------------------------------------ */
+/* スライダードラッグ中フラグ                                          */
+/* touch_handler.c の weak 関数をオーバーライド                       */
+/* ------------------------------------------------------------------ */
+static volatile bool slider_dragging = false;
+
+bool display_settings_is_interacting(void)
 {
-    lv_obj_t *obj = lv_obj_create(parent);
-    if (!obj) return NULL;
-
-    lv_obj_set_size(obj, 220, 64);
-    lv_obj_align(obj, align, x_off, y_off);
-
-    /* LVGL8: lv_obj_create は デフォルトで CLICKABLE を持つが明示しておく */
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-
-    lv_obj_set_style_bg_color(obj, bg, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(obj, bg_pressed, LV_STATE_PRESSED);
-    lv_obj_set_style_radius(obj, 12, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(obj, 0, LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_all(obj, 0, LV_STATE_DEFAULT);
-
-    /* ラベルはクリック不要 — イベントはボタン obj で受け取る */
-    lv_obj_t *lbl = lv_label_create(obj);
-    lv_label_set_text(lbl, text);
-    lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, LV_STATE_DEFAULT);
-    lv_obj_clear_flag(lbl, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_center(lbl);
-
-    return obj;
+    return slider_dragging;
 }
 
-/* ================================================================== */
-/* イベントハンドラ                                                    */
-/* ================================================================== */
-
-static void bootloader_cb(lv_event_t *e)
+/* ------------------------------------------------------------------ */
+/* LVGL8 スライダーイベントハンドラ                                    */
+/* ------------------------------------------------------------------ */
+static void slider_pressed_cb(lv_event_t *e)
 {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    LOG_INF("Enter UF2 bootloader");
-    sys_reboot(0x57); /* DFU_MAGIC_UF2_RESET */
+    slider_dragging = true;
 }
 
-static void reset_cb(lv_event_t *e)
+static void slider_released_cb(lv_event_t *e)
 {
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    LOG_INF("System warm reset");
-    sys_reboot(SYS_REBOOT_WARM);
+    slider_dragging = false;
+}
+
+static void slider_value_changed_cb(lv_event_t *e)
+{
+    lv_obj_t *slider = lv_event_get_target(e);
+    int32_t value    = lv_slider_get_value(slider);
+
+    struct zmk_widget_brightness_screen *widget = lv_event_get_user_data(e);
+    if (widget && widget->value_label) {
+        lv_label_set_text_fmt(widget->value_label, "%d%%", (int)value);
+    }
+
+    set_screen_brightness((uint8_t)value, false);
+    display_settings_set_manual_brightness((uint8_t)value);
+    display_settings_save_if_dirty();
+
+    LOG_INF("Brightness: %d", (int)value);
+}
+
+/* ------------------------------------------------------------------ */
+/* iOS 風スタイル                                                      */
+/* ------------------------------------------------------------------ */
+static void apply_slider_style(lv_obj_t *slider)
+{
+    /* トラック */
+    lv_obj_set_style_radius(slider, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(slider, lv_color_hex(0x3A3A3C), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(slider, 0, LV_PART_MAIN);
+
+    /* インジケータ */
+    lv_obj_set_style_radius(slider, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(slider, lv_color_hex(0x007AFF), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_INDICATOR);
+
+    /* ノブ */
+    lv_obj_set_style_radius(slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
+    lv_obj_set_style_bg_color(slider, lv_color_white(), LV_PART_KNOB);
+    lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(slider, 10, LV_PART_KNOB);
+    lv_obj_set_style_border_width(slider, 0, LV_PART_KNOB);
 }
 
 /* ================================================================== */
 /* Widget init                                                         */
 /* ================================================================== */
 
-int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
-                                    lv_obj_t *parent)
+int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widget,
+                                      lv_obj_t *parent)
 {
-    LOG_INF("system_settings_widget: init");
+    LOG_INF("brightness_screen: init");
     if (!parent) return -EINVAL;
 
-    /* ---- コンテナ ---- */
+    display_settings_init();
+
+    /* ---- フルスクリーンコンテナ ---- */
     widget->obj = lv_obj_create(parent);
     if (!widget->obj) return -ENOMEM;
 
     lv_obj_set_size(widget->obj, LV_HOR_RES, LV_VER_RES);
     lv_obj_set_pos(widget->obj, 0, 0);
     lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_SCROLLABLE);
-    /* コンテナはクリック不要 — ボタン obj のみクリック可にする */
+    /* コンテナ自身はクリック不要 — 子要素のみクリック可にする */
     lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_bg_color(widget->obj, lv_color_hex(0x0A0A0A), LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(widget->obj, LV_OPA_COVER, LV_STATE_DEFAULT);
@@ -102,30 +112,65 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
 
     /* ---- タイトル ---- */
     widget->title_label = lv_label_create(widget->obj);
-    lv_label_set_text(widget->title_label, "Quick Actions");
+    lv_label_set_text(widget->title_label, "Brightness");
     lv_obj_set_style_text_color(widget->title_label,
                                 lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->title_label,
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
-    /* ---- Bootloader ボタン ---- */
-    widget->bootloader_btn = make_btn(
-        widget->obj, "Enter Bootloader",
-        lv_color_hex(0x4A90E2), lv_color_hex(0x357ABD),
-        LV_ALIGN_CENTER, 0, -44);
-    if (!widget->bootloader_btn) { lv_obj_del(widget->obj); return -ENOMEM; }
-    lv_obj_add_event_cb(widget->bootloader_btn, bootloader_cb,
-                        LV_EVENT_CLICKED, NULL);
+    /* ---- 輝度値ラベル "80%" ---- */
+    widget->value_label = lv_label_create(widget->obj);
+    lv_obj_set_style_text_color(widget->value_label,
+                                lv_color_hex(0x007AFF), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(widget->value_label,
+                               &lv_font_montserrat_40, LV_STATE_DEFAULT);
+    lv_label_set_text_fmt(widget->value_label, "%d%%",
+                          display_settings_get_manual_brightness());
+    lv_obj_align(widget->value_label, LV_ALIGN_CENTER, 0, -20);
 
-    /* ---- System Reset ボタン ---- */
-    widget->reset_btn = make_btn(
-        widget->obj, "System Reset",
-        lv_color_hex(0xE24A4A), lv_color_hex(0xC93A3A),
-        LV_ALIGN_CENTER, 0, 36);
-    if (!widget->reset_btn) { lv_obj_del(widget->obj); return -ENOMEM; }
-    lv_obj_add_event_cb(widget->reset_btn, reset_cb,
-                        LV_EVENT_CLICKED, NULL);
+    /* ---- スライダー ---- */
+    widget->slider = lv_slider_create(widget->obj);
+    lv_obj_set_size(widget->slider, 200, 8);
+    lv_obj_align(widget->slider, LV_ALIGN_CENTER, 0, 50);
+    lv_slider_set_range(widget->slider,
+                        CONFIG_DONGLE_SCREEN_MIN_BRIGHTNESS,
+                        CONFIG_DONGLE_SCREEN_MAX_BRIGHTNESS);
+    lv_slider_set_value(widget->slider,
+                        display_settings_get_manual_brightness(),
+                        LV_ANIM_OFF);
+    /* タッチ領域を上下に拡大してドラッグしやすくする */
+    lv_obj_set_ext_click_area(widget->slider, 24);
+
+    apply_slider_style(widget->slider);
+
+    /* LVGL8 ネイティブのドラッグ検知 */
+    lv_obj_add_event_cb(widget->slider, slider_pressed_cb,
+                        LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(widget->slider, slider_released_cb,
+                        LV_EVENT_RELEASED, NULL);
+    lv_obj_add_event_cb(widget->slider, slider_value_changed_cb,
+                        LV_EVENT_VALUE_CHANGED, widget);
+
+    /* ---- 低輝度アイコン ---- */
+    widget->icon_low = lv_label_create(widget->obj);
+    lv_label_set_text(widget->icon_low, LV_SYMBOL_MINUS);
+    lv_obj_set_style_text_color(widget->icon_low,
+                                lv_color_hex(0x666666), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(widget->icon_low,
+                               &lv_font_montserrat_20, LV_STATE_DEFAULT);
+    lv_obj_align_to(widget->icon_low, widget->slider,
+                    LV_ALIGN_OUT_LEFT_MID, -14, 0);
+
+    /* ---- 高輝度アイコン ---- */
+    widget->icon_high = lv_label_create(widget->obj);
+    lv_label_set_text(widget->icon_high, LV_SYMBOL_PLUS);
+    lv_obj_set_style_text_color(widget->icon_high,
+                                lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(widget->icon_high,
+                               &lv_font_montserrat_20, LV_STATE_DEFAULT);
+    lv_obj_align_to(widget->icon_high, widget->slider,
+                    LV_ALIGN_OUT_RIGHT_MID, 14, 0);
 
     /* ---- ナビゲーションヒント ---- */
     widget->nav_hint = lv_label_create(widget->obj);
@@ -137,21 +182,27 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     lv_obj_align(widget->nav_hint, LV_ALIGN_BOTTOM_MID, 0, -10);
 
     lv_obj_add_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
-    LOG_INF("system_settings_widget: init done");
+    LOG_INF("brightness_screen: init done");
     return 0;
 }
 
-void zmk_widget_system_settings_show(struct zmk_widget_system_settings *widget)
+void zmk_widget_brightness_screen_show(struct zmk_widget_brightness_screen *widget)
 {
     if (!widget || !widget->obj) return;
+
+    uint8_t val = display_settings_get_manual_brightness();
+    lv_slider_set_value(widget->slider, val, LV_ANIM_OFF);
+    lv_label_set_text_fmt(widget->value_label, "%d%%", val);
+
     lv_obj_move_foreground(widget->obj);
     lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
-    LOG_INF("system_settings_widget: shown");
+    LOG_INF("brightness_screen: shown");
 }
 
-void zmk_widget_system_settings_hide(struct zmk_widget_system_settings *widget)
+void zmk_widget_brightness_screen_hide(struct zmk_widget_brightness_screen *widget)
 {
     if (!widget || !widget->obj) return;
     lv_obj_add_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
-    LOG_INF("system_settings_widget: hidden");
+    slider_dragging = false;
+    LOG_INF("brightness_screen: hidden");
 }
