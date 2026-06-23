@@ -23,6 +23,7 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 extern void set_screen_brightness(uint8_t value, bool ambient);
+static uint8_t pending_brightness = 50;
 
 /* ------------------------------------------------------------------ */
 /* スライダードラッグ中フラグ（touch_handler の weak 関数をオーバーライド） */
@@ -46,6 +47,11 @@ static void slider_pressed_cb(lv_event_t *e)
 static void slider_released_cb(lv_event_t *e)
 {
     slider_dragging = false;
+
+    display_settings_set_manual_brightness(
+        pending_brightness);
+
+    display_settings_save_if_dirty();
 }
 
 static void slider_value_changed_cb(lv_event_t *e)
@@ -53,15 +59,14 @@ static void slider_value_changed_cb(lv_event_t *e)
     lv_obj_t *slider = lv_event_get_target(e);
     int32_t value    = lv_slider_get_value(slider);
 
-    /* value_label はユーザーデータで渡す */
+    pending_brightness = (uint8_t)value;
+
     lv_obj_t *value_label = lv_event_get_user_data(e);
     if (value_label) {
         lv_label_set_text_fmt(value_label, "%d%%", (int)value);
     }
 
-    set_screen_brightness((uint8_t)value, false);
-    display_settings_set_manual_brightness((uint8_t)value);
-    display_settings_save_if_dirty();
+    set_screen_brightness(pending_brightness, false);
 }
 
 /* ------------------------------------------------------------------ */
