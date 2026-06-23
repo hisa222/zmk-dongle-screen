@@ -10,15 +10,14 @@
  *   screens[2] = 輝度設定（スライダー）
  *   screens[3] = クイックアクション（Bootloader / Reset）
  *
- * スワイプ: 左→次画面、右→前画面、ダブルタップ→メイン
- *
- * 設計方針:
- *   各スクリーンは lv_obj_create(NULL) で作成し、
- *   ウィジェットはスクリーンを直接 parent として渡す。
- *   中間コンテナを挟まない（タッチイベント伝播の問題を回避）。
+ * 重要:
+ *   zmk_display_status_screen() 内で touch_handler_register_lvgl_indev() を呼ぶ。
+ *   これにより LVGL indev が登録され、ボタン・スライダーへの
+ *   タッチイベントが LVGL に届くようになる。
  */
 
 #include "custom_status_screen.h"
+#include "touch_handler.h"
 #include "events/swipe_gesture_event.h"
 #include "display_settings.h"
 #include "widgets/brightness_screen.h"
@@ -107,7 +106,7 @@ ZMK_LISTENER(swipe_gesture_screen, swipe_gesture_event_handler);
 ZMK_SUBSCRIPTION(swipe_gesture_screen, zmk_swipe_gesture_event);
 
 /* ================================================================== */
-/* スタイル                                                            */
+/* スタイル・スクリーン生成ヘルパー                                    */
 /* ================================================================== */
 
 lv_style_t global_style;
@@ -185,11 +184,6 @@ static lv_obj_t *create_bongo_screen(void)
 
 static lv_obj_t *create_brightness_screen(void)
 {
-    /*
-     * brightness_widget はスクリーン自体を parent として使う。
-     * init 内部では lv_obj_create(parent) でコンテナを作らず、
-     * 全要素を直接 parent (= このスクリーン) に配置する。
-     */
     lv_obj_t *screen = make_screen();
     zmk_widget_brightness_screen_init(&brightness_widget, screen);
     return screen;
@@ -223,6 +217,15 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[1] = create_bongo_screen();
     screens[2] = create_brightness_screen();
     screens[3] = create_system_settings_screen();
+
+    /*
+     * LVGL indev を登録する。
+     * これにより lvgl_input_read() が LVGL のポーリングループから呼ばれ、
+     * ボタン・スライダーへのタッチイベントが届くようになる。
+     * スワイプは ZMK イベント経由なので indev 不要だが、
+     * LVGL ウィジェット（ボタン・スライダー）は indev 必須。
+     */
+    touch_handler_register_lvgl_indev();
 
     return screens[0];
 }
