@@ -74,7 +74,7 @@ static void slider_drag_cb(lv_event_t *e)
 {
     lv_event_code_t code   = lv_event_get_code(e);
     lv_obj_t       *slider = lv_event_get_target(e);
-    lv_indev_t     *indev  = lv_indev_active();
+    lv_indev_t      *indev = lv_indev_get_act();
     if (!indev) return;
 
     lv_point_t point;
@@ -141,7 +141,7 @@ static void slider_drag_cb(lv_event_t *e)
             ui_interaction_active     = false;
 
             if (!was_cancelled) {
-                lv_obj_send_event(slider, LV_EVENT_VALUE_CHANGED, NULL);
+                lv_event_send(slider, LV_EVENT_VALUE_CHANGED, NULL);
                 LOG_INF("Slider drag end: value=%d", (int)drag_state.current_value);
             } else {
                 LOG_DBG("Slider drag cancelled (swipe)");
