@@ -4,9 +4,15 @@
  *
  * Brightness Screen Widget
  *
- * LVGL8 ネイティブスライダーを使用。
- * カスタムドラッグロジックは使わず、LV_EVENT_VALUE_CHANGED のみ受け取る。
- * 縦スワイプとの競合は display_settings_is_interacting() weak オーバーライドで対処。
+ * 設計方針:
+ *   parent はスクリーン自体（lv_obj_create(NULL)）。
+ *   中間コンテナを作らず、全 LVGL オブジェクトを直接 parent に配置する。
+ *   これにより LVGL8 のタッチイベント伝播問題を回避する。
+ *
+ * スライダー:
+ *   LVGL8 ネイティブのスライダードラッグを使用。
+ *   LV_EVENT_VALUE_CHANGED のみ受け取る。
+ *   縦スワイプ抑制は display_settings_is_interacting() weak オーバーライドで対処。
  */
 
 #include "brightness_screen.h"
@@ -16,12 +22,10 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-/* brightness.c で定義 (non-static) */
 extern void set_screen_brightness(uint8_t value, bool ambient);
 
 /* ------------------------------------------------------------------ */
-/* スライダードラッグ中フラグ                                          */
-/* touch_handler.c の weak 関数をオーバーライド                       */
+/* スライダードラッグ中フラグ（touch_handler の weak 関数をオーバーライド） */
 /* ------------------------------------------------------------------ */
 static volatile bool slider_dragging = false;
 
@@ -31,8 +35,9 @@ bool display_settings_is_interacting(void)
 }
 
 /* ------------------------------------------------------------------ */
-/* LVGL8 スライダーイベントハンドラ                                    */
+/* イベントハンドラ                                                    */
 /* ------------------------------------------------------------------ */
+
 static void slider_pressed_cb(lv_event_t *e)
 {
     slider_dragging = true;
@@ -48,16 +53,15 @@ static void slider_value_changed_cb(lv_event_t *e)
     lv_obj_t *slider = lv_event_get_target(e);
     int32_t value    = lv_slider_get_value(slider);
 
-    struct zmk_widget_brightness_screen *widget = lv_event_get_user_data(e);
-    if (widget && widget->value_label) {
-        lv_label_set_text_fmt(widget->value_label, "%d%%", (int)value);
+    /* value_label はユーザーデータで渡す */
+    lv_obj_t *value_label = lv_event_get_user_data(e);
+    if (value_label) {
+        lv_label_set_text_fmt(value_label, "%d%%", (int)value);
     }
 
     set_screen_brightness((uint8_t)value, false);
     display_settings_set_manual_brightness((uint8_t)value);
     display_settings_save_if_dirty();
-
-    LOG_INF("Brightness: %d", (int)value);
 }
 
 /* ------------------------------------------------------------------ */
@@ -65,18 +69,15 @@ static void slider_value_changed_cb(lv_event_t *e)
 /* ------------------------------------------------------------------ */
 static void apply_slider_style(lv_obj_t *slider)
 {
-    /* トラック */
     lv_obj_set_style_radius(slider, LV_RADIUS_CIRCLE, LV_PART_MAIN);
     lv_obj_set_style_bg_color(slider, lv_color_hex(0x3A3A3C), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_border_width(slider, 0, LV_PART_MAIN);
 
-    /* インジケータ */
     lv_obj_set_style_radius(slider, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
     lv_obj_set_style_bg_color(slider, lv_color_hex(0x007AFF), LV_PART_INDICATOR);
     lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_INDICATOR);
 
-    /* ノブ */
     lv_obj_set_style_radius(slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
     lv_obj_set_style_bg_color(slider, lv_color_white(), LV_PART_KNOB);
     lv_obj_set_style_bg_opa(slider, LV_OPA_COVER, LV_PART_KNOB);
@@ -86,32 +87,24 @@ static void apply_slider_style(lv_obj_t *slider)
 
 /* ================================================================== */
 /* Widget init                                                         */
+/* parent = lv_obj_create(NULL) のスクリーン。コンテナなし。          */
 /* ================================================================== */
 
 int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widget,
                                       lv_obj_t *parent)
 {
-    LOG_INF("brightness_screen: init");
     if (!parent) return -EINVAL;
 
     display_settings_init();
 
-    /* ---- フルスクリーンコンテナ ---- */
-    widget->obj = lv_obj_create(parent);
-    if (!widget->obj) return -ENOMEM;
-
-    lv_obj_set_size(widget->obj, LV_HOR_RES, LV_VER_RES);
-    lv_obj_set_pos(widget->obj, 0, 0);
-    lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_SCROLLABLE);
-    /* コンテナ自身はクリック不要 — 子要素のみクリック可にする */
-    lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_style_bg_color(widget->obj, lv_color_hex(0x0A0A0A), LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(widget->obj, LV_OPA_COVER, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(widget->obj, 0, LV_STATE_DEFAULT);
-    lv_obj_set_style_pad_all(widget->obj, 0, LV_STATE_DEFAULT);
+    /*
+     * widget->obj = parent そのもの。
+     * 中間コンテナを作らない。
+     */
+    widget->obj = parent;
 
     /* ---- タイトル ---- */
-    widget->title_label = lv_label_create(widget->obj);
+    widget->title_label = lv_label_create(parent);
     lv_label_set_text(widget->title_label, "Brightness");
     lv_obj_set_style_text_color(widget->title_label,
                                 lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
@@ -120,7 +113,7 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
     /* ---- 輝度値ラベル "80%" ---- */
-    widget->value_label = lv_label_create(widget->obj);
+    widget->value_label = lv_label_create(parent);
     lv_obj_set_style_text_color(widget->value_label,
                                 lv_color_hex(0x007AFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->value_label,
@@ -130,7 +123,7 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_align(widget->value_label, LV_ALIGN_CENTER, 0, -20);
 
     /* ---- スライダー ---- */
-    widget->slider = lv_slider_create(widget->obj);
+    widget->slider = lv_slider_create(parent);
     lv_obj_set_size(widget->slider, 200, 8);
     lv_obj_align(widget->slider, LV_ALIGN_CENTER, 0, 50);
     lv_slider_set_range(widget->slider,
@@ -139,21 +132,20 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_slider_set_value(widget->slider,
                         display_settings_get_manual_brightness(),
                         LV_ANIM_OFF);
-    /* タッチ領域を上下に拡大してドラッグしやすくする */
     lv_obj_set_ext_click_area(widget->slider, 24);
 
     apply_slider_style(widget->slider);
 
-    /* LVGL8 ネイティブのドラッグ検知 */
     lv_obj_add_event_cb(widget->slider, slider_pressed_cb,
                         LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(widget->slider, slider_released_cb,
                         LV_EVENT_RELEASED, NULL);
+    /* user_data に value_label を渡して VALUE_CHANGED 内で更新 */
     lv_obj_add_event_cb(widget->slider, slider_value_changed_cb,
-                        LV_EVENT_VALUE_CHANGED, widget);
+                        LV_EVENT_VALUE_CHANGED, widget->value_label);
 
-    /* ---- 低輝度アイコン ---- */
-    widget->icon_low = lv_label_create(widget->obj);
+    /* ---- アイコン ---- */
+    widget->icon_low = lv_label_create(parent);
     lv_label_set_text(widget->icon_low, LV_SYMBOL_MINUS);
     lv_obj_set_style_text_color(widget->icon_low,
                                 lv_color_hex(0x666666), LV_STATE_DEFAULT);
@@ -162,8 +154,7 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_align_to(widget->icon_low, widget->slider,
                     LV_ALIGN_OUT_LEFT_MID, -14, 0);
 
-    /* ---- 高輝度アイコン ---- */
-    widget->icon_high = lv_label_create(widget->obj);
+    widget->icon_high = lv_label_create(parent);
     lv_label_set_text(widget->icon_high, LV_SYMBOL_PLUS);
     lv_obj_set_style_text_color(widget->icon_high,
                                 lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
@@ -173,7 +164,7 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
                     LV_ALIGN_OUT_RIGHT_MID, 14, 0);
 
     /* ---- ナビゲーションヒント ---- */
-    widget->nav_hint = lv_label_create(widget->obj);
+    widget->nav_hint = lv_label_create(parent);
     lv_label_set_text(widget->nav_hint, "< swipe >");
     lv_obj_set_style_text_color(widget->nav_hint,
                                 lv_color_hex(0x444444), LV_STATE_DEFAULT);
@@ -181,28 +172,22 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->nav_hint, LV_ALIGN_BOTTOM_MID, 0, -10);
 
-    lv_obj_add_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
-    LOG_INF("brightness_screen: init done");
     return 0;
 }
 
 void zmk_widget_brightness_screen_show(struct zmk_widget_brightness_screen *widget)
 {
-    if (!widget || !widget->obj) return;
-
+    /* スクリーン切り替えは lv_scr_load() で行うため、ここでは値の同期のみ */
+    if (!widget || !widget->slider) return;
     uint8_t val = display_settings_get_manual_brightness();
     lv_slider_set_value(widget->slider, val, LV_ANIM_OFF);
-    lv_label_set_text_fmt(widget->value_label, "%d%%", val);
-
-    lv_obj_move_foreground(widget->obj);
-    lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
-    LOG_INF("brightness_screen: shown");
+    if (widget->value_label) {
+        lv_label_set_text_fmt(widget->value_label, "%d%%", val);
+    }
+    slider_dragging = false;
 }
 
 void zmk_widget_brightness_screen_hide(struct zmk_widget_brightness_screen *widget)
 {
-    if (!widget || !widget->obj) return;
-    lv_obj_add_flag(widget->obj, LV_OBJ_FLAG_HIDDEN);
     slider_dragging = false;
-    LOG_INF("brightness_screen: hidden");
 }
