@@ -289,11 +289,27 @@ void zmk_widget_brightness_screen_show(struct zmk_widget_brightness_screen *widg
 
 void zmk_widget_brightness_screen_hide(struct zmk_widget_brightness_screen *widget)
 {
-    ARG_UNUSED(widget);
-
     brightness_screen_active = false;
     ui_interaction_active = false;
 
     s_drag.active = false;
     s_drag.drag_cancelled = false;
+
+    if (!widget) {
+        return;
+    }
+
+    /*
+     * 親 screen は custom_status_screen.c 側で lv_obj_clean() されるので、
+     * ここでは lv_obj_del() はしない。
+     * ただし、削除済みオブジェクトを次回 show/init が触らないように
+     * ポインタは必ず NULL に戻す。
+     */
+    widget->title_label = NULL;
+    widget->value_label = NULL;
+    widget->slider = NULL;
+    widget->icon_low = NULL;
+    widget->icon_high = NULL;
+    widget->nav_hint = NULL;
+    widget->obj = NULL;
 }
