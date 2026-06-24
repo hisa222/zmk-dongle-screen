@@ -107,7 +107,7 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
 
 // output_status.c
-int zmk_widget_output_status_init(struct zmk_widget_output_status_old *widget, lv_obj_t *parent)
+int zmk_widget_output_status_init_old(struct zmk_widget_output_status_old *widget, lv_obj_t *parent)
 {
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, 240, 77);
@@ -124,7 +124,7 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status_old *widget, l
     return 0;
 }
 
-lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status_old *widget)
+lv_obj_t *zmk_widget_output_status_obj_old(struct zmk_widget_output_status_old *widget)
 {
     return widget->obj;
 }
