@@ -67,6 +67,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #define SCREEN_COUNT 4
 
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+SCREEN_COUNT = SCREEN_COUNT - 1;
+
 static lv_obj_t *screens[SCREEN_COUNT];
 static int current_screen_index = 0;
 
@@ -207,19 +210,19 @@ static lv_obj_t *create_main_screen(void)
 /* ================================================================== */
 /* screens[1]: ボンゴキャット                                          */
 /* ================================================================== */
-
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+#else
 static lv_obj_t *create_bongo_screen(void)
 {
     lv_obj_t *screen = make_screen();
 
-// #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     zmk_widget_bongo_cat_init(&bongo_screen_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_screen_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
-// #endif
 
     return screen;
 }
+#endif
 
 /* ================================================================== */
 /* screens[2]: 輝度設定                                               */
@@ -256,10 +259,16 @@ lv_obj_t *zmk_display_status_screen(void)
     lv_style_set_text_letter_space(&global_style, 1);
     lv_style_set_text_line_space(&global_style, 1);
 
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+    screens[0] = create_main_screen();
+    screens[1] = create_brightness_screen();
+    screens[2] = create_system_settings_screen();
+#else
     screens[0] = create_main_screen();
     screens[1] = create_bongo_screen();
     screens[2] = create_brightness_screen();
     screens[3] = create_system_settings_screen();
+#endif
 
     /*
      * LVGL indev を登録する。
