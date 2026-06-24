@@ -166,7 +166,7 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
 
 }
 
-void battery_status_update_cb(struct battery_state state) {
+void battery_status_update_cb_old(struct battery_state state) {
     struct zmk_widget_dongle_battery_status_old *widget;
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_symbol(widget->obj, state); }
 }
@@ -199,7 +199,7 @@ static struct battery_state battery_status_get_state(const zmk_event_t *eh) {
 }
 
 ZMK_DISPLAY_WIDGET_LISTENER(widget_dongle_battery_status, struct battery_state,
-                            battery_status_update_cb, battery_status_get_state)
+                            battery_status_update_cb_old, battery_status_get_state)
 
 ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_peripheral_battery_state_changed);
 
