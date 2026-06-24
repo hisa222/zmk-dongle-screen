@@ -8,22 +8,39 @@
  *   parent はスクリーン自体。中間コンテナを作らない。
  *   全 LVGL オブジェクトを直接 parent に配置する。
  *
- * [修正] ボタンのイベント登録を LV_EVENT_SHORT_CLICKED 単独から
- *        LV_EVENT_ALL に変更し、コールバック内で CLICKED のみ処理する。
+ * [修正1] PRESS_LOCK を削除。
  *
  *   問題:
- *     LV_EVENT_SHORT_CLICKED はスワイプ動作の終端でも発火することがある。
- *     リセット画面からスワイプで別画面に遷移しようとすると、
- *     タッチ UP 時に SHORT_CLICKED が誤発火してボタンが動作していた。
+ *     LV_OBJ_FLAG_PRESS_LOCK が設定されていると、タッチがボタン上で開始した後、
+ *     指がボタン外に移動してもそのボタンが入力を保持し続ける。
+ *     スワイプ動作でタッチ UP した際に CLICKED / SHORT_CLICKED が発火することがある。
  *
- *   解決策:
- *     LV_EVENT_ALL で登録し、コールバック内で
- *     LV_EVENT_CLICKED / LV_EVENT_SHORT_CLICKED のみ処理する。
- *     スワイプ時は PRESS_LOST → RELEASED の順に発火し
- *     CLICKED / SHORT_CLICKED は発火しないため、誤作動が防止される。
+ *   解決:
+ *     PRESS_LOCK を外す。スワイプ中に指がボタン外へ出ると PRESS_LOST が発生し、
+ *     その後 CLICKED / SHORT_CLICKED は発火しなくなる。
+ *
+ * [修正2] touch_handler_is_swiping() でボタン誤発火をガード。
+ *
+ *   問題:
+ *     PRESS_LOCK を外してもスワイプ開始位置がボタン上の場合、
+ *     ごく短いスワイプでは PRESS_LOST が発生しないケースがある。
+ *     また Reset ボタンの Y 範囲が広いため、Bootloader 画面から
+ *     スワイプしてきた指の UP 座標が Reset ボタン上に入り誤発火する。
+ *
+ *   解決:
+ *     コールバック内で touch_handler_is_swiping() を参照し、
+ *     スワイプ中 (in_progress=true) であれば即座に return する。
+ *     touch_handler.c 側で swipe_state.in_progress が false になる
+ *     (= 完全に指が離れた後) でなければボタンは反応しない。
+ *
+ * [修正3] ボタン配置の Y 座標を調整して2ボタン間の隙間を確保。
+ *
+ *   旧: Bootloader(-44), Reset(+36) → 間隔 80px、近すぎてタップ誤認識
+ *   新: Bootloader(-52), Reset(+52) → 間隔 104px、タップ領域が明確に分離
  */
 
 #include "system_settings_widget.h"
+#include "../touch_handler.h"
 
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
@@ -32,7 +49,6 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* ================================================================== */
 /* ボタン作成ヘルパー                                                  */
-/* lv_obj_create(parent) で直接 parent (スクリーン) に配置する        */
 /* ================================================================== */
 
 static lv_obj_t *make_btn(lv_obj_t *parent,
@@ -46,12 +62,16 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
     lv_obj_t *obj = lv_obj_create(parent);
     if (!obj) return NULL;
 
-    lv_obj_set_size(obj, 220, 64);
+    lv_obj_set_size(obj, 220, 60);
     lv_obj_align(obj, align, x_off, y_off);
 
-    /* LVGL8: lv_obj_create はデフォルトで CLICKABLE。念のため明示。 */
     lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_PRESS_LOCK);
+    /*
+     * [修正1] LV_OBJ_FLAG_PRESS_LOCK を設定しない。
+     * PRESS_LOCK があるとスワイプ中もボタンが入力を保持し CLICKED が発火する。
+     * PRESS_LOCK なしではスワイプ中に指がボタン外へ出ると PRESS_LOST になり
+     * CLICKED は発火しない。
+     */
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_set_style_bg_color(obj, bg, LV_STATE_DEFAULT);
@@ -61,7 +81,6 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
     lv_obj_set_style_border_width(obj, 0, LV_STATE_DEFAULT);
     lv_obj_set_style_pad_all(obj, 0, LV_STATE_DEFAULT);
 
-    /* ラベルはクリック透過 */
     lv_obj_t *lbl = lv_label_create(obj);
     lv_label_set_text(lbl, text);
     lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
@@ -75,29 +94,31 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
 /* ================================================================== */
 /* イベントハンドラ                                                    */
 /*                                                                     */
-/* [修正] LV_EVENT_ALL で登録し、CLICKED / SHORT_CLICKED のみ処理。   */
+/* [修正2] touch_handler_is_swiping() でスワイプ中の誤発火をガード。  */
 /*                                                                     */
-/* スワイプ時のイベント発火順:                                         */
+/* スワイプ時のイベント発火順 (PRESS_LOCK なし):                       */
 /*   PRESSED → PRESSING → PRESS_LOST → RELEASED                      */
-/*   ↑ CLICKED / SHORT_CLICKED は発火しない → 誤作動しない            */
+/*   → CLICKED / SHORT_CLICKED は基本発火しない                       */
 /*                                                                     */
-/* 正常タップ時のイベント発火順:                                       */
-/*   PRESSED → RELEASED → SHORT_CLICKED → CLICKED                    */
-/*   ↑ CLICKED で処理される → 正常動作                                */
+/* ただしスワイプ開始点がボタン上で移動量が小さい場合、               */
+/* PRESS_LOST が発生しないケースへの保険として                        */
+/* touch_handler_is_swiping() によるガードを追加する。               */
 /* ================================================================== */
 
 static void bootloader_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_SHORT_CLICKED) return;
 
     /*
-     * [修正] CLICKED または SHORT_CLICKED のみ処理。
-     * 旧実装: if (code != LV_EVENT_SHORT_CLICKED) return;
-     *   → スワイプ終端で SHORT_CLICKED が誤発火することがあった。
-     * 新実装: LV_EVENT_ALL 登録 + 両イベントをガード。
-     *   → PRESS_LOST が介在するスワイプでは CLICKED/SHORT_CLICKED は来ない。
+     * [修正2] スワイプ進行中なら無視。
+     * touch_handler_is_swiping() は swipe_state.in_progress を返す。
+     * タッチ DOWN 〜 UP の間は true のため、スワイプ動作中はここで弾かれる。
      */
-    if (code != LV_EVENT_CLICKED && code != LV_EVENT_SHORT_CLICKED) return;
+    if (touch_handler_is_swiping()) {
+        LOG_DBG("Bootloader button ignored - swipe in progress");
+        return;
+    }
 
     LOG_INF("Enter UF2 bootloader");
     sys_reboot(0x57);
@@ -106,9 +127,13 @@ static void bootloader_cb(lv_event_t *e)
 static void reset_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_SHORT_CLICKED) return;
 
-    /* [修正] 同上 */
-    if (code != LV_EVENT_CLICKED && code != LV_EVENT_SHORT_CLICKED) return;
+    /* [修正2] 同上 */
+    if (touch_handler_is_swiping()) {
+        LOG_DBG("Reset button ignored - swipe in progress");
+        return;
+    }
 
     LOG_INF("System warm reset");
     sys_reboot(SYS_REBOOT_WARM);
@@ -116,7 +141,6 @@ static void reset_cb(lv_event_t *e)
 
 /* ================================================================== */
 /* Widget init                                                         */
-/* parent = lv_obj_create(NULL) のスクリーン。コンテナなし。          */
 /* ================================================================== */
 
 int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
@@ -124,7 +148,6 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
 {
     if (!parent) return -EINVAL;
 
-    /* widget->obj = parent そのもの */
     widget->obj = parent;
 
     /* ---- タイトル ---- */
@@ -136,30 +159,35 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
+    /*
+     * [修正3] ボタン Y 座標を調整。
+     *
+     * 旧: Bootloader(-44), Reset(+36)
+     *   → ボタン間の隙間: 36-(-44)-64 = 16px (狭すぎ)
+     *
+     * 新: Bootloader(-52), Reset(+52)
+     *   → ボタン間の隙間: 52-(-52)-60 = 44px (タップ領域が明確に分離)
+     */
+
     /* ---- Bootloader ボタン ---- */
     widget->bootloader_btn = make_btn(
         parent, "Enter Bootloader",
         lv_color_hex(0x4A90E2), lv_color_hex(0x357ABD),
-        LV_ALIGN_CENTER, 0, -44);
+        LV_ALIGN_CENTER, 0, -52);
     if (!widget->bootloader_btn) return -ENOMEM;
 
-    /*
-     * [修正] LV_EVENT_SHORT_CLICKED → LV_EVENT_ALL に変更。
-     * コールバック内で CLICKED / SHORT_CLICKED のみ処理する。
-     */
     lv_obj_add_event_cb(widget->bootloader_btn,
-                        bootloader_cb, LV_EVENT_ALL, NULL);
+                        bootloader_cb, LV_EVENT_SHORT_CLICKED, NULL);
 
     /* ---- System Reset ボタン ---- */
     widget->reset_btn = make_btn(
         parent, "System Reset",
         lv_color_hex(0xE24A4A), lv_color_hex(0xC93A3A),
-        LV_ALIGN_CENTER, 0, 36);
+        LV_ALIGN_CENTER, 0, 52);
     if (!widget->reset_btn) return -ENOMEM;
 
-    /* [修正] 同上 */
     lv_obj_add_event_cb(widget->reset_btn,
-                        reset_cb, LV_EVENT_ALL, NULL);
+                        reset_cb, LV_EVENT_SHORT_CLICKED, NULL);
 
     /* ---- ナビゲーションヒント ---- */
     widget->nav_hint = lv_label_create(parent);
