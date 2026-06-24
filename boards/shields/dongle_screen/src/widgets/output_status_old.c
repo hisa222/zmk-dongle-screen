@@ -43,7 +43,7 @@ static struct output_status_state get_state(const zmk_event_t *_eh)
         .usb_is_hid_ready = zmk_usb_is_hid_ready()};                       // 0 = not ready, 1 = ready
 }
 
-static void set_status_symbol(struct zmk_widget_output_status *widget, struct output_status_state state)
+static void set_status_symbol(struct zmk_widget_output_status_old *widget, struct output_status_state state)
 {
     const char *ble_color = "ffffff";
     const char *usb_color = "ffffff";
@@ -93,7 +93,7 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
 
 static void output_status_update_cb(struct output_status_state state)
 {
-    struct zmk_widget_output_status *widget;
+    struct zmk_widget_output_status_old *widget;
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node)
     {
         set_status_symbol(widget, state);
@@ -107,7 +107,7 @@ ZMK_SUBSCRIPTION(widget_output_status, zmk_ble_active_profile_changed);
 ZMK_SUBSCRIPTION(widget_output_status, zmk_usb_conn_state_changed);
 
 // output_status.c
-int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_obj_t *parent)
+int zmk_widget_output_status_init(struct zmk_widget_output_status_old *widget, lv_obj_t *parent)
 {
     widget->obj = lv_obj_create(parent);
     lv_obj_set_size(widget->obj, 240, 77);
@@ -124,7 +124,7 @@ int zmk_widget_output_status_init(struct zmk_widget_output_status *widget, lv_ob
     return 0;
 }
 
-lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status *widget)
+lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status_old *widget)
 {
     return widget->obj;
 }
