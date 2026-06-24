@@ -69,6 +69,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 SCREEN_COUNT = SCREEN_COUNT - 1;
+#endif
 
 static lv_obj_t *screens[SCREEN_COUNT];
 static int current_screen_index = 0;
