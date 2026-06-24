@@ -209,10 +209,16 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
                     int16_t abs_dx = (dx < 0) ? -dx : dx;
                     int16_t abs_dy = (dy < 0) ? -dy : dy;
 
-                    if (abs_dy > (abs_dx * 3 / 2) && abs_dy > SWIPE_THRESHOLD) {
+                    /*
+                     * [修正] スワイプ判定: 単純な大小比較に変更
+                     * 変更前: abs_dy > (abs_dx * 3 / 2) — 1.5倍の差が必要で不感帯が生じていた
+                     * 変更後: abs_dy > abs_dx           — どちらが大きいかだけで判定
+                     * 効果: スワイプ感度が向上し、斜め方向のタッチが未認識になるケースが解消される
+                     */
+                    if (abs_dy > abs_dx && abs_dy > SWIPE_THRESHOLD) {
                         LOG_INF("SW SWIPE: %s (dy=%d)", dy > 0 ? "DOWN" : "UP", dy);
                         raise_swipe_event(dy > 0 ? SWIPE_DIRECTION_DOWN : SWIPE_DIRECTION_UP);
-                    } else if (abs_dx > (abs_dy * 3 / 2) && abs_dx > SWIPE_THRESHOLD) {
+                    } else if (abs_dx > abs_dy && abs_dx > SWIPE_THRESHOLD) {
                         LOG_INF("SW SWIPE: %s (dx=%d)", dx > 0 ? "RIGHT" : "LEFT", dx);
                         raise_swipe_event(dx > 0 ? SWIPE_DIRECTION_RIGHT : SWIPE_DIRECTION_LEFT);
                     } else if (abs_dx <= DOUBLE_TAP_THRESHOLD && abs_dy <= DOUBLE_TAP_THRESHOLD) {
@@ -251,11 +257,10 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
     }
 }
 
-// Input callback registration macro (Zephyr 4.x requires 3 args: dev, callback, user_data)
-// INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(TOUCH_NODE), touch_input_callback, NULL);
+// Zephyr 3.5: INPUT_CALLBACK_DEFINE は 2引数
 INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(TOUCH_NODE), touch_input_callback);
 
-// LVGL input device read callback (LVGL 9 API)
+// LVGL input device read callback (LVGL 8 API)
 // COORDINATE TRANSFORM:
 // - Touch panel physical: 240 x 280 (portrait)
 // - Display logical: 280 x 240 (landscape, rotated 90° via ST7789V mdac)
