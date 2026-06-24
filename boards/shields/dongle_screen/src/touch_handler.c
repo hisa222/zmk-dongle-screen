@@ -6,17 +6,31 @@
 
 #include "touch_handler.h"
 #include "events/swipe_gesture_event.h"
-// Message queue removed - using ZMK event system for thread-safe architecture
 
-/* Weak function - overridden by display_settings_widget.c when included */
-__attribute__((weak)) bool display_settings_is_interacting(void) {
-    return false;  /* Default: never blocking */
+/*
+ * [修正1] display_settings_is_interacting のシグネチャを変更。
+ *
+ * 旧: bool display_settings_is_interacting(void)
+ * 新: bool display_settings_is_interacting(uint16_t raw_x, uint16_t raw_y)
+ *
+ * 理由:
+ *   touch_input_callback (Zephyrスレッド) と LVGL処理 (専用スレッド) は非同期。
+ *   タッチ DOWN から UP の間に LVGL が LV_EVENT_PRESSED を処理する保証がないため、
+ *   LVGLイベント起点の slider_dragging フラグは間に合わないケースがある。
+ *
+ *   生タッチ座標を受け取ることで、brightness_screen.c 側がスライダー領域かどうかを
+ *   スレッド競合なしに即座に判定できる。
+ */
+__attribute__((weak)) bool display_settings_is_interacting(uint16_t raw_x, uint16_t raw_y) {
+    ARG_UNUSED(raw_x);
+    ARG_UNUSED(raw_y);
+    return false;
 }
 
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/input/input.h>
-#include <zephyr/dt-bindings/input/input-event-codes.h>  // INPUT_KEY_DOWN, etc.
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/logging/log.h>
 #include <lvgl.h>
 #include <zmk/event_manager.h>
@@ -29,25 +43,20 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #error "Touch sensor device tree node not found"
 #endif
 
-// Swipe gesture detection settings
-#define SWIPE_THRESHOLD 30  // Minimum pixels for valid swipe (adjusted for 180° rotated display)
+#define SWIPE_THRESHOLD 30
 
-// Touch event state
 static struct touch_event_data last_event = {0};
 static touch_event_callback_t registered_callback = NULL;
 static bool touch_active = false;
-static bool prev_touch_active = false;  // Track previous state to detect touch start
+static bool prev_touch_active = false;
 
-// LVGL input device
 static lv_indev_t *lvgl_indev = NULL;
 
-// Current touch coordinates (accumulated from INPUT_ABS_X/Y events)
 static uint16_t current_x = 0;
 static uint16_t current_y = 0;
 static bool x_updated = false;
 static bool y_updated = false;
 
-// Swipe gesture state
 static struct {
     int16_t start_x;
     int16_t start_y;
@@ -55,24 +64,29 @@ static struct {
     bool in_progress;
 } swipe_state = {0};
 
-// Cooldown to prevent rapid-fire swipe events (prevents freeze)
 #define SWIPE_COOLDOWN_MS 400
 static int64_t last_swipe_time = 0;
 
-// Flag to prevent duplicate events (hardware gesture + software detection)
 static bool swipe_already_raised = false;
 
-// Double-tap detection
-#define DOUBLE_TAP_THRESHOLD 10   /* Max movement for tap (pixels) */
-#define DOUBLE_TAP_INTERVAL_MS 350 /* Max interval between two taps */
+#define DOUBLE_TAP_THRESHOLD 10
+#define DOUBLE_TAP_INTERVAL_MS 350
 static int64_t last_tap_time = 0;
 
-// Helper function to raise swipe gesture event (thread-safe)
-// Uses ZMK event system - listener runs in main thread, safe for LVGL
+/*
+ * [追加] touch_handler_is_swiping()
+ *
+ * タッチ DOWN から UP の間 true を返す。
+ * system_settings_widget.c のボタンコールバックがスワイプ中の誤発火を
+ * ガードするために参照する。
+ */
+bool touch_handler_is_swiping(void) {
+    return swipe_state.in_progress;
+}
+
 static void raise_swipe_event(enum swipe_direction direction) {
     const char *dir_name[] = {"UP", "DOWN", "LEFT", "RIGHT"};
 
-    // Cooldown check - prevent rapid consecutive swipes that cause freeze
     int64_t now = k_uptime_get();
     if ((now - last_swipe_time) < SWIPE_COOLDOWN_MS) {
         LOG_DBG("Swipe blocked - cooldown active (%lld ms remaining)",
@@ -80,8 +94,11 @@ static void raise_swipe_event(enum swipe_direction direction) {
         return;
     }
 
-    // Block swipe during UI interaction (slider drag, etc.)
-    if (display_settings_is_interacting()) {
+    /*
+     * [修正2] display_settings_is_interacting に生座標を渡す。
+     * brightness_screen.c 側でスライダー領域を座標から即座に判定する。
+     */
+    if (display_settings_is_interacting(current_x, current_y)) {
         LOG_DBG("Swipe blocked - UI interaction in progress");
         return;
     }
@@ -89,19 +106,11 @@ static void raise_swipe_event(enum swipe_direction direction) {
     last_swipe_time = now;
     LOG_INF("Raising ZMK swipe event: %s", dir_name[direction]);
 
-    // Use ZMK event system - thread-safe, listener runs in main thread
-    // No message queue needed - ZMK event manager handles synchronization
     raise_zmk_swipe_gesture_event(
         (struct zmk_swipe_gesture_event){.direction = direction}
     );
 }
 
-/**
- * Input event callback for CST816S touch sensor
- *
- * This receives INPUT_BTN_TOUCH, INPUT_ABS_X, INPUT_ABS_Y events from Zephyr
- */
-// External callback registration function that can be called from scanner_display.c
 extern void touch_handler_late_register_callback(touch_event_callback_t callback);
 
 static void touch_input_callback(struct input_event *evt, void *user_data) {
@@ -110,7 +119,6 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
 
     switch (evt->code) {
         case INPUT_KEY_DOWN:
-            // CST816S hardware gesture: Swipe DOWN detected
             if (evt->value == 1) {
                 LOG_INF("HW GESTURE: Swipe DOWN");
                 swipe_already_raised = true;
@@ -143,77 +151,83 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
             break;
 
         case INPUT_ABS_X:
-            // Store X coordinate
             current_x = (uint16_t)evt->value;
             x_updated = true;
             LOG_DBG("X: %d", current_x);
             break;
 
         case INPUT_ABS_Y:
-            // Store Y coordinate
             current_y = (uint16_t)evt->value;
             y_updated = true;
             LOG_DBG("Y: %d", current_y);
             break;
 
         case INPUT_BTN_TOUCH:
-            // Touch state changed
             touch_active = (evt->value != 0);
             LOG_DBG("BTN_TOUCH event: value=%d, prev_active=%d, new_active=%d",
                     evt->value, prev_touch_active, touch_active);
 
-            // Wait for coordinates to be updated
             if (!x_updated || !y_updated) {
                 LOG_DBG("Touch event before coordinates updated, using previous values");
             }
 
-            // Update last event with complete coordinates
             last_event.x = current_x;
             last_event.y = current_y;
             last_event.touched = touch_active;
             last_event.timestamp = k_uptime_get_32();
 
-            // Detect touch start (false → true transition)
             bool touch_started = touch_active && !prev_touch_active;
 
-            LOG_DBG("🔍 Touch state: touch_active=%d, prev_touch_active=%d, touch_started=%d",
+            LOG_DBG("Touch state: touch_active=%d, prev=%d, started=%d",
                     touch_active, prev_touch_active, touch_started);
 
             if (touch_started) {
-                // Touch DOWN - record start position and clear duplicate flag
                 swipe_state.start_x = current_x;
                 swipe_state.start_y = current_y;
                 swipe_state.start_time = k_uptime_get();
                 swipe_state.in_progress = true;
-                swipe_already_raised = false;  // Clear for new touch sequence
+                swipe_already_raised = false;
 
                 LOG_DBG("Touch DOWN at (%d, %d)", current_x, current_y);
 
-                // Reset coordinate update flags for next touch
+                /*
+                 * [修正3] タッチ DOWN 時点でスライダー領域かを即座に判定し、
+                 *         スワイプを事前ブロックする。
+                 *
+                 * 背景:
+                 *   LVGL専用スレッドが LV_EVENT_PRESSED を処理する前に
+                 *   Zephyrスレッドの touch_input_callback が UP を処理して
+                 *   スワイプ判定に到達してしまう競合がある。
+                 *   生座標で判定することでスレッド競合なしに即座にブロックできる。
+                 */
+                if (display_settings_is_interacting(current_x, current_y)) {
+                    swipe_already_raised = true;
+                    LOG_DBG("Touch DOWN on interactive area - swipe pre-blocked");
+                }
+
                 x_updated = false;
                 y_updated = false;
             } else if (touch_active) {
-                // Touch is being held (dragging) - just log current position (reduced logging)
                 LOG_DBG("Dragging at (%d, %d)", current_x, current_y);
             } else {
-                // Touch UP - Software swipe or tap detection
+                // Touch UP
                 if (!swipe_already_raised && swipe_state.in_progress) {
                     int16_t raw_dx = current_x - swipe_state.start_x;
                     int16_t raw_dy = current_y - swipe_state.start_y;
 
-                    // COORDINATE TRANSFORM for rotated display
+                    // COORDINATE TRANSFORM for ROTATED_270 display
                     // Touch Y → Display X (direct), Touch X → Display Y (inverted)
-                    int16_t dx = raw_dy;   // X: direct mapping
-                    int16_t dy = -raw_dx;  // Y: inverted
+                    int16_t dx = raw_dy;
+                    int16_t dy = -raw_dx;
 
                     int16_t abs_dx = (dx < 0) ? -dx : dx;
                     int16_t abs_dy = (dy < 0) ? -dy : dy;
 
                     /*
-                     * [修正] スワイプ判定: 単純な大小比較に変更
-                     * 変更前: abs_dy > (abs_dx * 3 / 2) — 1.5倍の差が必要で不感帯が生じていた
-                     * 変更後: abs_dy > abs_dx           — どちらが大きいかだけで判定
-                     * 効果: スワイプ感度が向上し、斜め方向のタッチが未認識になるケースが解消される
+                     * [修正4] スワイプ判定を単純な大小比較に変更。
+                     *
+                     * 旧: abs_dy > (abs_dx * 3 / 2) — 1.5倍差が必要で不感帯が生じた
+                     * 新: abs_dy > abs_dx            — どちらが大きいかだけで判定
                      */
                     if (abs_dy > abs_dx && abs_dy > SWIPE_THRESHOLD) {
                         LOG_INF("SW SWIPE: %s (dy=%d)", dy > 0 ? "DOWN" : "UP", dy);
@@ -222,11 +236,10 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
                         LOG_INF("SW SWIPE: %s (dx=%d)", dx > 0 ? "RIGHT" : "LEFT", dx);
                         raise_swipe_event(dx > 0 ? SWIPE_DIRECTION_RIGHT : SWIPE_DIRECTION_LEFT);
                     } else if (abs_dx <= DOUBLE_TAP_THRESHOLD && abs_dy <= DOUBLE_TAP_THRESHOLD) {
-                        // Short tap detected - check for double-tap
                         int64_t tap_now = k_uptime_get();
                         if ((tap_now - last_tap_time) < DOUBLE_TAP_INTERVAL_MS && last_tap_time > 0) {
                             LOG_INF("DOUBLE TAP detected");
-                            last_tap_time = 0;  // Reset to prevent triple-tap
+                            last_tap_time = 0;
                             raise_swipe_event(SWIPE_DIRECTION_DOUBLE_TAP);
                         } else {
                             last_tap_time = tap_now;
@@ -237,22 +250,20 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
                 swipe_state.in_progress = false;
                 swipe_already_raised = false;
 
-                // Reset coordinate update flags
                 x_updated = false;
                 y_updated = false;
             }
 
-            // Call registered callback if available (for future gesture implementation)
             if (registered_callback) {
                 registered_callback(&last_event);
             }
 
-            // Update previous state for next event
             prev_touch_active = touch_active;
             break;
 
         default:
-            LOG_DBG("Unknown input event: type=%d, code=%d, value=%d", evt->type, evt->code, evt->value);
+            LOG_DBG("Unknown input event: type=%d, code=%d, value=%d",
+                    evt->type, evt->code, evt->value);
             break;
     }
 }
@@ -260,22 +271,18 @@ static void touch_input_callback(struct input_event *evt, void *user_data) {
 // Zephyr 3.5: INPUT_CALLBACK_DEFINE は 2引数
 INPUT_CALLBACK_DEFINE(DEVICE_DT_GET(TOUCH_NODE), touch_input_callback);
 
-// LVGL input device read callback (LVGL 8 API)
+// LVGL 8 input device read callback
 // COORDINATE TRANSFORM:
 // - Touch panel physical: 240 x 280 (portrait)
-// - Display logical: 280 x 240 (landscape, rotated 90° via ST7789V mdac)
-// - Touch Y (0-279) → Display X (0-279) - direct mapping, NO inversion
-// - Touch X (0-239) → Display Y (239-0) - inverted
+// - Display logical: 280 x 240 (landscape, ROTATED_270)
+// - Touch Y (0-279) → Display X (0-279): direct mapping
+// - Touch X (0-239) → Display Y (239-0): inverted
 static void lvgl_input_read(lv_indev_t *indev, lv_indev_data_t *data) {
     ARG_UNUSED(indev);
 
-    // Transform coordinates: swap X/Y axes
-    // Touch panel Y axis maps to display X axis (direct, no inversion)
-    // Touch panel X axis maps to display Y axis (inverted)
-    int32_t logical_x = current_y;           // Direct mapping
-    int32_t logical_y = 239 - current_x;     // Inverted
+    int32_t logical_x = current_y;
+    int32_t logical_y = 239 - current_x;
 
-    // Clamp to valid range
     if (logical_x < 0) logical_x = 0;
     if (logical_x > 279) logical_x = 279;
     if (logical_y < 0) logical_y = 0;
@@ -285,7 +292,6 @@ static void lvgl_input_read(lv_indev_t *indev, lv_indev_data_t *data) {
     data->point.y = logical_y;
     data->state = touch_active ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 
-    // Debug: Log when LVGL reads touch state (reduced frequency)
     static uint32_t last_log_time = 0;
     uint32_t now = k_uptime_get_32();
     if (now - last_log_time > 500 || touch_active) {
@@ -307,8 +313,7 @@ int touch_handler_init(void) {
 
     LOG_INF("Touch handler initialized: CST816S on I2C");
     LOG_INF("Touch panel size: 240x280 (Waveshare 1.69\" Round LCD)");
-    LOG_INF("✅ Using ZMK event system for thread-safe LVGL operations");
-    LOG_INF("⚠️ LVGL indev will be registered later by scanner_display.c");
+    LOG_INF("LVGL indev will be registered later by scanner_display.c");
 
     return 0;
 }
@@ -319,7 +324,7 @@ int touch_handler_register_lvgl_indev(void) {
         return 0;
     }
 
-    // Register LVGL input device for touch events (LVGL 8 API)
+    // LVGL 8 API
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
     indev_drv.type    = LV_INDEV_TYPE_POINTER;
@@ -337,12 +342,12 @@ int touch_handler_register_lvgl_indev(void) {
 
 int touch_handler_register_callback(touch_event_callback_t callback) {
     if (!callback) {
-        LOG_ERR("❌ Callback is NULL!");
+        LOG_ERR("Callback is NULL!");
         return -EINVAL;
     }
 
     registered_callback = callback;
-    LOG_INF("✅ Touch callback registered successfully: callback=%p", (void*)callback);
+    LOG_INF("Touch callback registered: callback=%p", (void*)callback);
 
     return 0;
 }
