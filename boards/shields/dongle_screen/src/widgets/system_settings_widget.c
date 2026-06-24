@@ -7,6 +7,20 @@
  * 設計方針:
  *   parent はスクリーン自体。中間コンテナを作らない。
  *   全 LVGL オブジェクトを直接 parent に配置する。
+ *
+ * [修正] ボタンのイベント登録を LV_EVENT_SHORT_CLICKED 単独から
+ *        LV_EVENT_ALL に変更し、コールバック内で CLICKED のみ処理する。
+ *
+ *   問題:
+ *     LV_EVENT_SHORT_CLICKED はスワイプ動作の終端でも発火することがある。
+ *     リセット画面からスワイプで別画面に遷移しようとすると、
+ *     タッチ UP 時に SHORT_CLICKED が誤発火してボタンが動作していた。
+ *
+ *   解決策:
+ *     LV_EVENT_ALL で登録し、コールバック内で
+ *     LV_EVENT_CLICKED / LV_EVENT_SHORT_CLICKED のみ処理する。
+ *     スワイプ時は PRESS_LOST → RELEASED の順に発火し
+ *     CLICKED / SHORT_CLICKED は発火しないため、誤作動が防止される。
  */
 
 #include "system_settings_widget.h"
@@ -60,18 +74,42 @@ static lv_obj_t *make_btn(lv_obj_t *parent,
 
 /* ================================================================== */
 /* イベントハンドラ                                                    */
+/*                                                                     */
+/* [修正] LV_EVENT_ALL で登録し、CLICKED / SHORT_CLICKED のみ処理。   */
+/*                                                                     */
+/* スワイプ時のイベント発火順:                                         */
+/*   PRESSED → PRESSING → PRESS_LOST → RELEASED                      */
+/*   ↑ CLICKED / SHORT_CLICKED は発火しない → 誤作動しない            */
+/*                                                                     */
+/* 正常タップ時のイベント発火順:                                       */
+/*   PRESSED → RELEASED → SHORT_CLICKED → CLICKED                    */
+/*   ↑ CLICKED で処理される → 正常動作                                */
 /* ================================================================== */
 
 static void bootloader_cb(lv_event_t *e)
 {
-    if (lv_event_get_code(e) != LV_EVENT_SHORT_CLICKED) return;
+    lv_event_code_t code = lv_event_get_code(e);
+
+    /*
+     * [修正] CLICKED または SHORT_CLICKED のみ処理。
+     * 旧実装: if (code != LV_EVENT_SHORT_CLICKED) return;
+     *   → スワイプ終端で SHORT_CLICKED が誤発火することがあった。
+     * 新実装: LV_EVENT_ALL 登録 + 両イベントをガード。
+     *   → PRESS_LOST が介在するスワイプでは CLICKED/SHORT_CLICKED は来ない。
+     */
+    if (code != LV_EVENT_CLICKED && code != LV_EVENT_SHORT_CLICKED) return;
+
     LOG_INF("Enter UF2 bootloader");
     sys_reboot(0x57);
 }
 
 static void reset_cb(lv_event_t *e)
 {
-    if (lv_event_get_code(e) != LV_EVENT_SHORT_CLICKED) return;
+    lv_event_code_t code = lv_event_get_code(e);
+
+    /* [修正] 同上 */
+    if (code != LV_EVENT_CLICKED && code != LV_EVENT_SHORT_CLICKED) return;
+
     LOG_INF("System warm reset");
     sys_reboot(SYS_REBOOT_WARM);
 }
@@ -104,8 +142,13 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         lv_color_hex(0x4A90E2), lv_color_hex(0x357ABD),
         LV_ALIGN_CENTER, 0, -44);
     if (!widget->bootloader_btn) return -ENOMEM;
+
+    /*
+     * [修正] LV_EVENT_SHORT_CLICKED → LV_EVENT_ALL に変更。
+     * コールバック内で CLICKED / SHORT_CLICKED のみ処理する。
+     */
     lv_obj_add_event_cb(widget->bootloader_btn,
-                      bootloader_cb, LV_EVENT_SHORT_CLICKED, NULL);
+                        bootloader_cb, LV_EVENT_ALL, NULL);
 
     /* ---- System Reset ボタン ---- */
     widget->reset_btn = make_btn(
@@ -113,8 +156,10 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         lv_color_hex(0xE24A4A), lv_color_hex(0xC93A3A),
         LV_ALIGN_CENTER, 0, 36);
     if (!widget->reset_btn) return -ENOMEM;
+
+    /* [修正] 同上 */
     lv_obj_add_event_cb(widget->reset_btn,
-                    reset_cb, LV_EVENT_SHORT_CLICKED, NULL);
+                        reset_cb, LV_EVENT_ALL, NULL);
 
     /* ---- ナビゲーションヒント ---- */
     widget->nav_hint = lv_label_create(parent);
