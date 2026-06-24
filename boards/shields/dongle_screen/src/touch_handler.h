@@ -55,3 +55,14 @@ int touch_handler_get_last_event(struct touch_event_data *event);
  * @return 0 on success, negative errno on failure
  */
 int touch_handler_register_lvgl_indev(void);
+
+/**
+ * スワイプジェスチャー進行中かどうかを返す。
+ *
+ * タッチ DOWN から UP の間 true を返す。
+ * system_settings_widget.c のボタンコールバックから参照し、
+ * スワイプ中にボタンが誤発火しないようガードするために使う。
+ *
+ * @return true if a swipe gesture is in progress
+ */
+bool touch_handler_is_swiping(void);
