@@ -176,7 +176,7 @@ for (int i = 0; i < ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
 
     lv_obj_set_style_text_font(
         battery_label,
-        &lv_font_montserrat_24,
+        &lv_font_montserrat_20,
         0
     );
 
