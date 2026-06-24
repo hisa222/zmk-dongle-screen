@@ -128,6 +128,7 @@ static lv_obj_t *create_main_screen(void)
 {
     lv_obj_t *screen = make_screen();
 //
+/*
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
@@ -159,7 +160,7 @@ static lv_obj_t *create_main_screen(void)
     lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
                  LV_ALIGN_TOP_MID, 0, 85);
 #endif
-
+*/
     zmk_widget_bongo_cat_init(&bongo_cat_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_cat_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
