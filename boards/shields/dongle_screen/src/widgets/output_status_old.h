@@ -18,5 +18,5 @@ struct zmk_widget_output_status_old
     sys_snode_t node;
 };
 
-int zmk_widget_output_status_init(struct zmk_widget_output_status_old *widget, lv_obj_t *parent);
-lv_obj_t *zmk_widget_output_status_obj(struct zmk_widget_output_status_old *widget);
+int zmk_widget_output_status_init_old(struct zmk_widget_output_status_old *widget, lv_obj_t *parent);
+lv_obj_t *zmk_widget_output_status_obj_old(struct zmk_widget_output_status_old *widget);
