@@ -121,6 +121,22 @@ static void prepare_screen(lv_color_t bg)
     lv_obj_add_style(screen_obj, &global_style, LV_PART_MAIN);
 }
 
+static void hide_current_screen_widgets(void)
+{
+    switch (current_screen) {
+    case SCREEN_BRIGHTNESS:
+        zmk_widget_brightness_screen_hide(&brightness_widget);
+        break;
+
+    case SCREEN_SYSTEM_SETTINGS:
+        zmk_widget_system_settings_hide(&system_settings_widget);
+        break;
+
+    default:
+        break;
+    }
+}
+
 /* ================================================================== */
 /* Main screen                                                        */
 /* ================================================================== */
@@ -200,11 +216,7 @@ static void create_main_screen_widgets(void)
 
 static void show_main_screen(void)
 {
-    if (current_screen == SCREEN_BRIGHTNESS) {
-        zmk_widget_brightness_screen_hide(&brightness_widget);
-    } else if (current_screen == SCREEN_SYSTEM_SETTINGS) {
-        zmk_widget_system_settings_hide(&system_settings_widget);
-    }
+    hide_current_screen_widgets();
 
     prepare_screen(lv_color_hex(0x000000));
     create_main_screen_widgets();
@@ -218,11 +230,7 @@ static void show_main_screen(void)
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 static void show_bongo_screen(void)
 {
-    if (current_screen == SCREEN_BRIGHTNESS) {
-        zmk_widget_brightness_screen_hide(&brightness_widget);
-    } else if (current_screen == SCREEN_SYSTEM_SETTINGS) {
-        zmk_widget_system_settings_hide(&system_settings_widget);
-    }
+    hide_current_screen_widgets();
 
     prepare_screen(lv_color_hex(0x000000));
 
@@ -241,13 +249,10 @@ static void show_bongo_screen(void)
 static void show_brightness_screen(void)
 {
     if (current_screen == SCREEN_BRIGHTNESS) {
-        zmk_widget_brightness_screen_show(&brightness_widget);
         return;
     }
 
-    if (current_screen == SCREEN_SYSTEM_SETTINGS) {
-        zmk_widget_system_settings_hide(&system_settings_widget);
-    }
+    hide_current_screen_widgets();
 
     prepare_screen(lv_color_hex(0x0A0A0A));
     ensure_lvgl_indev_registered();
@@ -265,13 +270,10 @@ static void show_brightness_screen(void)
 static void show_system_settings_screen(void)
 {
     if (current_screen == SCREEN_SYSTEM_SETTINGS) {
-        zmk_widget_system_settings_show(&system_settings_widget);
         return;
     }
 
-    if (current_screen == SCREEN_BRIGHTNESS) {
-        zmk_widget_brightness_screen_hide(&brightness_widget);
-    }
+    hide_current_screen_widgets();
 
     prepare_screen(lv_color_hex(0x0A0A0A));
     ensure_lvgl_indev_registered();
