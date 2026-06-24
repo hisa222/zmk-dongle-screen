@@ -14,5 +14,5 @@ struct zmk_widget_dongle_battery_status_old {
     lv_obj_t *obj;
 };
 
-int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status_old *widget, lv_obj_t *parent);
-lv_obj_t *zmk_widget_dongle_battery_status_obj(struct zmk_widget_dongle_battery_status_old *widget);
+int zmk_widget_dongle_battery_status_init_old(struct zmk_widget_dongle_battery_status_old *widget, lv_obj_t *parent);
+lv_obj_t *zmk_widget_dongle_battery_status_obj_old(struct zmk_widget_dongle_battery_status_old *widget);
