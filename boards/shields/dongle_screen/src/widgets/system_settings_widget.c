@@ -201,6 +201,19 @@ void zmk_widget_system_settings_show(struct zmk_widget_system_settings *widget)
 
 void zmk_widget_system_settings_hide(struct zmk_widget_system_settings *widget)
 {
-    ARG_UNUSED(widget);
     ui_interaction_active = false;
+
+    if (!widget) {
+        return;
+    }
+
+    /*
+     * 実体削除は親 screen の lv_obj_clean() 側で行う。
+     * ここでは dangling pointer を残さないために NULL 化だけする。
+     */
+    widget->title_label = NULL;
+    widget->bootloader_btn = NULL;
+    widget->reset_btn = NULL;
+    widget->nav_hint = NULL;
+    widget->obj = NULL;
 }
