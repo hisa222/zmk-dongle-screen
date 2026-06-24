@@ -34,7 +34,7 @@ static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_stat
 {
 
     char wpm_text[12];
-    snprintf(wpm_text, sizeof(wpm_text), "%i", state.wpm);
+    snprintf(wpm_text, sizeof(wpm_text), "WPM: %i", state.wpm);
     lv_label_set_text(widget->wpm_label, wpm_text);
 }
 
