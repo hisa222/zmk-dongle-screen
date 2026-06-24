@@ -65,10 +65,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 /* スクリーン管理                                                      */
 /* ================================================================== */
 
-#define SCREEN_COUNT 4
-
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-SCREEN_COUNT = SCREEN_COUNT - 1;
+#define SCREEN_COUNT 3
+#else
+#define SCREEN_COUNT 4
 #endif
 
 static lv_obj_t *screens[SCREEN_COUNT];
