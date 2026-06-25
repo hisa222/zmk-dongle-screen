@@ -98,7 +98,7 @@ lv_style_t global_style;
  * brightness_screen.c / system_settings_widget.c から参照される
  * 「今 UI 操作中か」の共有フラグ。
  */
-bool ui_interaction_active = false;
+volatile bool ui_interaction_active = false;
 
 /* ================================================================== */
 /* Helpers                                                            */
