@@ -235,7 +235,7 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_set_style_text_color(widget->hint_label,
                                 lv_color_hex(0x444444), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->hint_label,
-                               &lv_font_montserrat_18, LV_STATE_DEFAULT);
+                               &lv_font_montserrat_12, LV_STATE_DEFAULT);
     lv_obj_align(widget->hint_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 
     return 0;
