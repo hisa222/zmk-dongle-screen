@@ -4,17 +4,17 @@
  *
  * Brightness screen
  *
- * Prospector 寄せのためのポイント:
+ * 方針:
  * - スライダ操作中は ui_interaction_active = true
  * - VALUE_CHANGED で即時反映
- * - RELEASED / PRESS_LOST で interaction を解除
- * - CLICKED ベースではなく slider の drag 操作を優先
+ * - RELEASED / PRESS_LOST で解除
+ * - slider のノブだけでなくトラック上タップでも値変更できるようにする
  */
 
 #include "brightness_screen.h"
+#include "../custom_status_screen.h"
 #include "../display_settings.h"
 #include "../touch_handler.h"
-#include "../custom_status_screen.h"
 
 #include <zephyr/logging/log.h>
 #include <errno.h>
@@ -70,9 +70,6 @@ static void brightness_slider_event_cb(lv_event_t *e)
         break;
 
     case LV_EVENT_PRESSING:
-        /*
-         * LVGL8 では PRESSED が来ないケースへの保険。
-         */
         if (!widget->dragging) {
             slider_press_start(widget);
         }
@@ -88,26 +85,13 @@ static void brightness_slider_event_cb(lv_event_t *e)
 
         widget->current_value = (uint8_t)value;
         update_value_label(widget, widget->current_value);
-
-        /*
-         * Prospector 寄せ:
-         * ドラッグ中も即時にバックライトへ反映
-         */
         (void)display_settings_set_brightness(widget->current_value);
         break;
     }
 
     case LV_EVENT_RELEASED:
     case LV_EVENT_PRESS_LOST:
-        /*
-         * スワイプへ移行した場合でも PRESS_LOST が来るので
-         * interaction を必ず解除する。
-         */
         slider_press_end(widget);
-
-        /*
-         * 念のため最終値を保存
-         */
         (void)display_settings_set_brightness(widget->current_value);
         break;
 
@@ -117,7 +101,7 @@ static void brightness_slider_event_cb(lv_event_t *e)
 }
 
 /* ================================================================== */
-/* UI build                                                           */
+/* Widget init                                                        */
 /* ================================================================== */
 
 int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widget,
@@ -132,9 +116,6 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     widget->current_value = display_settings_get_brightness();
     widget->dragging = false;
 
-    /*
-     * ルートコンテナ
-     */
     widget->obj = lv_obj_create(parent);
     if (!widget->obj) {
         return -ENOMEM;
@@ -148,9 +129,6 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_set_style_border_width(widget->obj, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(widget->obj, 0, LV_PART_MAIN);
 
-    /*
-     * タイトル
-     */
     widget->title_label = lv_label_create(widget->obj);
     if (!widget->title_label) {
         return -ENOMEM;
@@ -163,9 +141,6 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
-    /*
-     * 値ラベル
-     */
     widget->value_label = lv_label_create(widget->obj);
     if (!widget->value_label) {
         return -ENOMEM;
@@ -174,48 +149,57 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_set_style_text_color(widget->value_label,
                                 lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->value_label,
-                               &lv_font_montserrat_20, LV_STATE_DEFAULT);
+                               &lv_font_montserrat_28, LV_STATE_DEFAULT);
     lv_obj_align(widget->value_label, LV_ALIGN_CENTER, 0, -28);
     update_value_label(widget, widget->current_value);
 
-    /*
-     * スライダ
-     */
     widget->slider = lv_slider_create(widget->obj);
     if (!widget->slider) {
         return -ENOMEM;
     }
 
-    lv_obj_set_size(widget->slider, 220, 20);
+    /*
+     * 少し太く・広くして操作しやすくする
+     */
+    lv_obj_set_size(widget->slider, 240, 32);
     lv_obj_align(widget->slider, LV_ALIGN_CENTER, 0, 28);
     lv_slider_set_range(widget->slider, 0, 100);
     lv_slider_set_value(widget->slider, widget->current_value, LV_ANIM_OFF);
 
+    /*
+     * トラック
+     */
     lv_obj_set_style_bg_color(widget->slider,
                               lv_color_hex(0x303030), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(widget->slider,
                             LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_radius(widget->slider, 10, LV_PART_MAIN);
+    lv_obj_set_style_radius(widget->slider, 16, LV_PART_MAIN);
     lv_obj_set_style_border_width(widget->slider, 0, LV_PART_MAIN);
 
+    /*
+     * インジケータ
+     */
     lv_obj_set_style_bg_color(widget->slider,
                               lv_color_hex(0x4A90E2), LV_PART_INDICATOR);
     lv_obj_set_style_bg_opa(widget->slider,
                             LV_OPA_COVER, LV_PART_INDICATOR);
-    lv_obj_set_style_radius(widget->slider, 10, LV_PART_INDICATOR);
+    lv_obj_set_style_radius(widget->slider, 16, LV_PART_INDICATOR);
 
+    /*
+     * ノブを大きくする
+     */
     lv_obj_set_style_bg_color(widget->slider,
                               lv_color_hex(0xFFFFFF), LV_PART_KNOB);
     lv_obj_set_style_bg_opa(widget->slider,
                             LV_OPA_COVER, LV_PART_KNOB);
     lv_obj_set_style_radius(widget->slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);
-    lv_obj_set_style_pad_all(widget->slider, 6, LV_PART_KNOB);
+    lv_obj_set_style_pad_all(widget->slider, 10, LV_PART_KNOB);
 
     /*
-     * 重要:
-     * スワイプとの競合を減らすため、
-     * slider は scrollable にしない。
+     * ここが重要:
+     * LVGL 側で slider 全体がタップ・ドラッグを受け取れるよう clickable を明示。
      */
+    lv_obj_add_flag(widget->slider, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(widget->slider, LV_OBJ_FLAG_SCROLLABLE);
 
     lv_obj_add_event_cb(widget->slider,
@@ -223,19 +207,16 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
                         LV_EVENT_ALL,
                         widget);
 
-    /*
-     * ナビゲーションヒント
-     */
     widget->hint_label = lv_label_create(widget->obj);
     if (!widget->hint_label) {
         return -ENOMEM;
     }
 
-    lv_label_set_text(widget->hint_label, "^ swipe up");
+    lv_label_set_text(widget->hint_label, "< swipe >");
     lv_obj_set_style_text_color(widget->hint_label,
                                 lv_color_hex(0x444444), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->hint_label,
-                               &lv_font_montserrat_12, LV_STATE_DEFAULT);
+                               &lv_font_montserrat_18, LV_STATE_DEFAULT);
     lv_obj_align(widget->hint_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 
     return 0;
@@ -269,10 +250,6 @@ void zmk_widget_brightness_screen_hide(struct zmk_widget_brightness_screen *widg
     widget->dragging = false;
     ui_interaction_active = false;
 
-    /*
-     * 実体の削除は screen 側 lv_obj_clean() に任せる。
-     * ここでは参照だけ落とす。
-     */
     widget->title_label = NULL;
     widget->value_label = NULL;
     widget->slider = NULL;
