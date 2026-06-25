@@ -16,6 +16,7 @@
 
 #include "system_settings_widget.h"
 #include "../touch_handler.h"
+#include "../custom_status_screen.h"
 
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
