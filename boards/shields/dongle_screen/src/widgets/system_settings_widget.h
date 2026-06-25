@@ -8,12 +8,6 @@
 #include <lvgl.h>
 #include <stdbool.h>
 
-/*
- * custom_status_screen.c 側で定義される共有フラグ。
- * brightness_screen / system_settings_widget が操作中に true にする。
- */
-extern bool ui_interaction_active;
-
 struct zmk_widget_system_settings {
     lv_obj_t *obj;              /* = parent そのもの（コンテナなし）*/
     lv_obj_t *title_label;
