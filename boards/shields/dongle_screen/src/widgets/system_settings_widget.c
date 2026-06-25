@@ -19,6 +19,7 @@
 
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/reboot.h>
+#include <errno.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -132,7 +133,7 @@ static void reset_cb(lv_event_t *e)
 int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
                                     lv_obj_t *parent)
 {
-    if (!parent) {
+    if (!widget || !parent) {
         return -EINVAL;
     }
 
