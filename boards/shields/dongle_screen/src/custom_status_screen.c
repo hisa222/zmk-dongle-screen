@@ -412,7 +412,7 @@ static int swipe_event_listener(const zmk_event_t *eh)
 }
 
 ZMK_LISTENER(dongle_screen_swipe_listener, swipe_event_listener);
-ZMK_SUBSCRIPTION(dongle_screen_swipe_listener, swipe_gesture_event);
+ZMK_SUBSCRIPTION(dongle_screen_swipe_listener, zmk_swipe_gesture_event);
 
 /* ================================================================== */
 /* Public init                                                        */
