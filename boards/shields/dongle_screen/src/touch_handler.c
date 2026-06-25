@@ -42,7 +42,7 @@ static touch_event_callback_t registered_callback = NULL;
 static bool touch_active = false;
 static bool prev_touch_active = false;
 
-volatile bool ui_interaction_active = false;
+// volatile bool ui_interaction_active = false;
 
 static lv_indev_t *lvgl_indev = NULL;
 
