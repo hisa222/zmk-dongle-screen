@@ -4,14 +4,14 @@
  *
  * Brightness Screen Widget
  *
- * Prospector の操作感に寄せるため、
+ * Prospector の操作感を完全に踏襲:
  * - スライダー操作中は ui_interaction_active=true
- * - スワイプ遷移は抑止
+ * - 縦スワイプ検知時は即 ui_interaction_active=false → スワイプを通過させる
  * - 値変更はリアルタイム反映
  * - NVS 保存は RELEASED 時のみ
  *
- * さらに touch_handler.c から brightness screen 上のスライダー領域を
- * 生タッチ座標で判定できるよう display_settings_is_interacting() を提供する。
+ * display_settings_is_interacting() は引数なし版(prospector互換)に統一。
+ * touch_handler.c の weak 宣言も引数なし版に合わせること。
  */
 
 #include "brightness_screen.h"
@@ -31,34 +31,19 @@ extern void set_screen_brightness(uint8_t value, bool ambient);
 static bool brightness_screen_active = false;
 
 /*
- * touch_handler.c から呼ばれる weak override.
- * raw touch 座標ベースで brightness slider 領域かどうかを判定する。
+ * touch_handler.c から呼ばれる weak override (引数なし版).
  *
- * 論理 280x240 / ROTATED_270 前提:
- * slider: LV_ALIGN_CENTER, 0, 50
- * size  : 200 x 8
- * ext_click_area: 24
- *
- * 論理Y 146〜202 付近が raw_x 37〜93 に対応するため、
- * raw_x のみで広めに判定する。
+ * brightness screen が表示中かどうかだけを返す。
+ * 座標判定は廃止し、prospector と同様にシンプルな active フラグのみで管理する。
+ * スライダー操作中の誤スワイプ防止は ui_interaction_active で行う。
  */
-bool display_settings_is_interacting(uint16_t raw_x, uint16_t raw_y)
+bool display_settings_is_interacting(void)
 {
-    ARG_UNUSED(raw_y);
-
-    if (!brightness_screen_active) {
-        return false;
-    }
-
-    if (raw_x >= 37 && raw_x <= 93) {
-        return true;
-    }
-
-    return false;
+    return brightness_screen_active && ui_interaction_active;
 }
 
 /* ------------------------------------------------------------------ */
-/* custom drag state                                                  */
+/* custom drag state (prospector の slider_drag_state と同等)         */
 /* ------------------------------------------------------------------ */
 
 #define SLIDER_SWIPE_THRESHOLD 30
@@ -75,12 +60,22 @@ static struct {
     bool    drag_cancelled;
 } s_drag = {0};
 
+/*
+ * スライダーのカスタムドラッグコールバック
+ *
+ * Prospector の ds_custom_slider_drag_cb と同じロジック:
+ * - PRESSED    : 初期状態を記録、ui_interaction_active=true
+ * - PRESSING   : delta_x でスライダー値を計算、縦スワイプなら即キャンセル
+ *                (キャンセル時は ui_interaction_active=false でスワイプを通過)
+ * - RELEASED   : 最終値をセット、NVS 保存、ui_interaction_active=false
+ * - PRESS_LOST : RELEASED と同じクリーンアップ
+ */
 static void slider_custom_drag_cb(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t *slider = lv_event_get_target(e);
 
-    lv_indev_t *indev = lv_indev_get_act();
+    lv_indev_t *indev = lv_indev_get_act();  /* LVGL8 API */
     if (!indev) {
         return;
     }
@@ -108,20 +103,21 @@ static void slider_custom_drag_cb(lv_event_t *e)
             return;
         }
 
-        int32_t delta_x = point.x - s_drag.start_x;
-        int32_t delta_y = point.y - s_drag.start_y;
-        int32_t abs_dx = (delta_x < 0) ? -delta_x : delta_x;
-        int32_t abs_dy = (delta_y < 0) ? -delta_y : delta_y;
+        int32_t delta_x  = point.x - s_drag.start_x;
+        int32_t delta_y  = point.y - s_drag.start_y;
+        int32_t abs_dx   = (delta_x < 0) ? -delta_x : delta_x;
+        int32_t abs_dy   = (delta_y < 0) ? -delta_y : delta_y;
 
         /*
-         * 大きく縦に振った場合はスライダー変更をキャンセル。
-         * ただし ui_interaction_active 自体は RELEASED まで true のままなので、
-         * この touch 中に画面遷移が走ることはない。
+         * 縦スワイプ検知: Y 移動量が閾値を超えかつ X の 2 倍以上
+         * → スライダー変更をキャンセルし、ui_interaction_active=false にして
+         *   スワイプイベントが通過できるようにする (prospector と同じ)
          */
         if (abs_dy > SLIDER_SWIPE_THRESHOLD && abs_dy > abs_dx * 2) {
             lv_slider_set_value(slider, s_drag.start_value, LV_ANIM_OFF);
-            s_drag.current_value = s_drag.start_value;
+            s_drag.current_value  = s_drag.start_value;
             s_drag.drag_cancelled = true;
+            ui_interaction_active = false;  /* スワイプを通過させる */
             return;
         }
 
@@ -129,9 +125,10 @@ static void slider_custom_drag_cb(lv_event_t *e)
             return;
         }
 
+        /* 水平ドラッグ: delta_x を直接マッピング (prospector と同じ) */
         int32_t value_range = s_drag.max_val - s_drag.min_val;
         int32_t value_delta = (delta_x * value_range) / s_drag.slider_width;
-        int32_t new_value = s_drag.start_value + value_delta;
+        int32_t new_value   = s_drag.start_value + value_delta;
 
         if (new_value < s_drag.min_val) new_value = s_drag.min_val;
         if (new_value > s_drag.max_val) new_value = s_drag.max_val;
@@ -139,28 +136,39 @@ static void slider_custom_drag_cb(lv_event_t *e)
         s_drag.current_value = new_value;
         lv_slider_set_value(slider, new_value, LV_ANIM_OFF);
 
+        /* リアルタイムラベル更新 */
         lv_obj_t *value_label = lv_event_get_user_data(e);
         if (value_label) {
             lv_label_set_text_fmt(value_label, "%d%%", (int)new_value);
         }
 
+        /* リアルタイム輝度反映 */
         set_screen_brightness((uint8_t)new_value, false);
         return;
     }
 
     if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
         if (s_drag.active) {
+            /* LVGL の default handler が上書きする前に正しい値を再セット */
             lv_slider_set_value(slider, s_drag.current_value, LV_ANIM_OFF);
 
-            if (!s_drag.drag_cancelled) {
+            bool was_cancelled = s_drag.drag_cancelled;
+            s_drag.active         = false;
+            s_drag.drag_cancelled = false;
+            ui_interaction_active = false;
+
+            if (!was_cancelled) {
+                /* NVS 保存 */
                 display_settings_set_manual_brightness((uint8_t)s_drag.current_value);
                 display_settings_save_if_dirty();
+
+                /* 正しい値で VALUE_CHANGED を再発火 (ラベル最終更新) */
+                lv_obj_t *value_label = lv_event_get_user_data(e);
+                if (value_label) {
+                    lv_label_set_text_fmt(value_label, "%d%%", (int)s_drag.current_value);
+                }
             }
         }
-
-        s_drag.active = false;
-        s_drag.drag_cancelled = false;
-        ui_interaction_active = false;
         return;
     }
 }
@@ -231,11 +239,11 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     apply_slider_style(widget->slider);
 
     lv_obj_add_event_cb(widget->slider, slider_custom_drag_cb,
-                        LV_EVENT_PRESSED, widget->value_label);
+                        LV_EVENT_PRESSED,    widget->value_label);
     lv_obj_add_event_cb(widget->slider, slider_custom_drag_cb,
-                        LV_EVENT_PRESSING, widget->value_label);
+                        LV_EVENT_PRESSING,   widget->value_label);
     lv_obj_add_event_cb(widget->slider, slider_custom_drag_cb,
-                        LV_EVENT_RELEASED, widget->value_label);
+                        LV_EVENT_RELEASED,   widget->value_label);
     lv_obj_add_event_cb(widget->slider, slider_custom_drag_cb,
                         LV_EVENT_PRESS_LOST, widget->value_label);
 
@@ -275,7 +283,7 @@ void zmk_widget_brightness_screen_show(struct zmk_widget_brightness_screen *widg
     }
 
     brightness_screen_active = true;
-    ui_interaction_active = false;
+    ui_interaction_active    = false;
 
     uint8_t val = display_settings_get_manual_brightness();
     lv_slider_set_value(widget->slider, val, LV_ANIM_OFF);
@@ -283,16 +291,16 @@ void zmk_widget_brightness_screen_show(struct zmk_widget_brightness_screen *widg
         lv_label_set_text_fmt(widget->value_label, "%d%%", val);
     }
 
-    s_drag.active = false;
+    s_drag.active         = false;
     s_drag.drag_cancelled = false;
 }
 
 void zmk_widget_brightness_screen_hide(struct zmk_widget_brightness_screen *widget)
 {
     brightness_screen_active = false;
-    ui_interaction_active = false;
+    ui_interaction_active    = false;
 
-    s_drag.active = false;
+    s_drag.active         = false;
     s_drag.drag_cancelled = false;
 
     if (!widget) {
@@ -302,14 +310,13 @@ void zmk_widget_brightness_screen_hide(struct zmk_widget_brightness_screen *widg
     /*
      * 親 screen は custom_status_screen.c 側で lv_obj_clean() されるので、
      * ここでは lv_obj_del() はしない。
-     * ただし、削除済みオブジェクトを次回 show/init が触らないように
-     * ポインタは必ず NULL に戻す。
+     * 削除済みオブジェクトを次回 show/init が触らないようポインタを NULL 化。
      */
     widget->title_label = NULL;
     widget->value_label = NULL;
-    widget->slider = NULL;
-    widget->icon_low = NULL;
-    widget->icon_high = NULL;
-    widget->nav_hint = NULL;
-    widget->obj = NULL;
+    widget->slider      = NULL;
+    widget->icon_low    = NULL;
+    widget->icon_high   = NULL;
+    widget->nav_hint    = NULL;
+    widget->obj         = NULL;
 }
