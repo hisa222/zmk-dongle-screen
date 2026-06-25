@@ -14,6 +14,7 @@
 #include "brightness_screen.h"
 #include "../display_settings.h"
 #include "../touch_handler.h"
+#include "../custom_status_screen.h"
 
 #include <zephyr/logging/log.h>
 #include <errno.h>
