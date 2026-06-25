@@ -2,23 +2,19 @@
  * Copyright (c) 2024 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  *
- * Dongle screen status UI
+ * Dongle custom status screen
  *
- * Prospector の操作感に寄せるため、画面遷移は以下の方針に変更している。
+ * 重要:
+ * - Prospector 寄せの UI 操作フラグ(ui_interaction_active) は維持
+ * - ただし画面管理は dongle_screen 既存方式に戻し、
+ *   各 screen を個別に生成して lv_scr_load() で切り替える
  *
- * 1. スワイプイベント受信時に直接 lv_scr_load() / lv_obj_clean() しない
- *    → イベントハンドラでは pending_swipe に方向を記録するだけ
- *
- * 2. 実際の画面遷移は LVGL timer 側で実行する
- *    → ISR/Zephyr callback 側から LVGL API を触らない
- *
- * 3. brightness スライダや system settings ボタン操作中は
- *    ui_interaction_active=true にしてスワイプ遷移を抑止する
- *
- * 4. 画面は「screen を複数持って lv_scr_load で切替」ではなく、
- *    単一 screen_obj を lv_obj_clean() して再構築する
- *
- * LVGL 8 / ZMK 3.5 向け実装。
+ * 理由:
+ * - output/layer/battery/wpm/mod/bongo の各 widget は
+ *   static な widget state を持ち、ZMK イベント購読と絡むため、
+ *   lv_obj_clean() による単一 screen 再構築方式だと不安定になりやすい
+ * - 実際に「画面遷移後フリーズ」「メイン画面の表示欠落」が発生しているため、
+ *   screen 単位の切替へ戻す
  */
 
 #include "custom_status_screen.h"
@@ -53,11 +49,10 @@ static struct zmk_widget_wpm_status wpm_status_widget;
 static struct zmk_widget_mod_status mod_widget;
 #endif
 
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 #include "widgets/bongo_cat.h"
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 static struct zmk_widget_bongo_cat main_bongo_cat_widget;
 #else
-#include "widgets/bongo_cat.h"
 static struct zmk_widget_bongo_cat bongo_screen_widget;
 #endif
 
@@ -71,34 +66,43 @@ static struct zmk_widget_system_settings system_settings_widget;
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* ================================================================== */
-/* Screen state                                                       */
+/* Shared interaction state                                           */
 /* ================================================================== */
+
+/*
+ * brightness_screen / system_settings_widget / touch_handler から参照される。
+ * true の間は画面スワイプ遷移を抑止する。
+ */
+volatile bool ui_interaction_active = false;
+
+/* ================================================================== */
+/* Screen management                                                  */
+/* ================================================================== */
+
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+#define SCREEN_COUNT 3
+#else
+#define SCREEN_COUNT 4
+#endif
 
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-    SCREEN_BONGO,
+    SCREEN_BONGO = 1,
+    SCREEN_BRIGHTNESS = 2,
+    SCREEN_SYSTEM_SETTINGS = 3,
+#else
+    SCREEN_BRIGHTNESS = 1,
+    SCREEN_SYSTEM_SETTINGS = 2,
 #endif
-    SCREEN_BRIGHTNESS,
-    SCREEN_SYSTEM_SETTINGS,
 };
 
-static lv_obj_t *screen_obj;
-static lv_timer_t *swipe_timer;
-static enum dongle_screen_id current_screen = SCREEN_MAIN;
-
-static volatile enum swipe_direction pending_swipe = SWIPE_DIRECTION_NONE;
-static bool transition_in_progress = false;
+static lv_obj_t *screens[SCREEN_COUNT];
+static int current_screen_index = 0;
 static bool lvgl_indev_registered = false;
 
 /* global style */
 lv_style_t global_style;
-
-/*
- * brightness_screen.c / system_settings_widget.c から参照される
- * 「今 UI 操作中か」の共有フラグ。
- */
-volatile bool ui_interaction_active = false;
 
 /* ================================================================== */
 /* Helpers                                                            */
@@ -119,132 +123,111 @@ static void ensure_lvgl_indev_registered(void)
     }
 }
 
-static void prepare_screen(lv_color_t bg)
+static lv_obj_t *make_screen(void)
 {
-    lv_obj_clean(screen_obj);
-    lv_obj_set_style_bg_color(screen_obj, bg, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(screen_obj, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_add_style(screen_obj, &global_style, LV_PART_MAIN);
-}
-
-static void hide_current_screen_widgets(void)
-{
-    switch (current_screen) {
-    case SCREEN_BRIGHTNESS:
-        zmk_widget_brightness_screen_hide(&brightness_widget);
-        break;
-
-    case SCREEN_SYSTEM_SETTINGS:
-        zmk_widget_system_settings_hide(&system_settings_widget);
-        break;
-
-    default:
-        break;
-    }
+    lv_obj_t *screen = lv_obj_create(NULL);
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_add_style(screen, &global_style, LV_PART_MAIN);
+    lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE);
+    return screen;
 }
 
 /* ================================================================== */
 /* Main screen                                                        */
 /* ================================================================== */
 
-static void create_main_screen_widgets(void)
+static lv_obj_t *create_main_screen(void)
 {
+    lv_obj_t *screen = make_screen();
+
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
-    zmk_widget_output_status_init(&output_status_widget, screen_obj);
+    zmk_widget_output_status_init(&output_status_widget, screen);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
                  LV_ALIGN_TOP_MID, 0, 10);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_BATTERY_ACTIVE
-    zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen_obj);
+    zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget),
                  LV_ALIGN_TOP_MID, 0, 10);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_WPM_ACTIVE
-    zmk_widget_wpm_status_init(&wpm_status_widget, screen_obj);
+    zmk_widget_wpm_status_init(&wpm_status_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
                  LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
-    zmk_widget_layer_status_init(&layer_status_widget, screen_obj);
+    zmk_widget_layer_status_init(&layer_status_widget, screen);
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_MID, 0, 50);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
-    zmk_widget_mod_status_init(&mod_widget, screen_obj);
+    zmk_widget_mod_status_init(&mod_widget, screen);
     lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
                  LV_ALIGN_TOP_MID, 0, 85);
 #endif
 
-    zmk_widget_bongo_cat_init(&main_bongo_cat_widget, screen_obj);
+    zmk_widget_bongo_cat_init(&main_bongo_cat_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&main_bongo_cat_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
 
 #else
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
-    zmk_widget_output_status_init(&output_status_widget, screen_obj);
+    zmk_widget_output_status_init(&output_status_widget, screen);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
                  LV_ALIGN_TOP_MID, 0, 10);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_BATTERY_ACTIVE
-    zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen_obj);
+    zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_WPM_ACTIVE
-    zmk_widget_wpm_status_init(&wpm_status_widget, screen_obj);
+    zmk_widget_wpm_status_init(&wpm_status_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
                  LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
-    zmk_widget_layer_status_init(&layer_status_widget, screen_obj);
+    zmk_widget_layer_status_init(&layer_status_widget, screen);
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_CENTER, 0, 0);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
-    zmk_widget_mod_status_init(&mod_widget, screen_obj);
+    zmk_widget_mod_status_init(&mod_widget, screen);
     lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
                  LV_ALIGN_CENTER, 0, 35);
 #endif
 
 #endif
-}
 
-static void show_main_screen(void)
-{
-    hide_current_screen_widgets();
-
-    prepare_screen(lv_color_hex(0x000000));
-    create_main_screen_widgets();
-    current_screen = SCREEN_MAIN;
+    return screen;
 }
 
 /* ================================================================== */
-/* Bongo-only screen (only when main screen does NOT contain bongo)   */
+/* Bongo-only screen                                                  */
 /* ================================================================== */
 
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-static void show_bongo_screen(void)
+static lv_obj_t *create_bongo_screen(void)
 {
-    hide_current_screen_widgets();
+    lv_obj_t *screen = make_screen();
 
-    prepare_screen(lv_color_hex(0x000000));
-
-    zmk_widget_bongo_cat_init(&bongo_screen_widget, screen_obj);
+    zmk_widget_bongo_cat_init(&bongo_screen_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_screen_widget),
-                 LV_ALIGN_CENTER, 0, 0);
+                 LV_ALIGN_BOTTOM_MID, 0, 0);
 
-    current_screen = SCREEN_BONGO;
+    return screen;
 }
 #endif
 
@@ -252,142 +235,53 @@ static void show_bongo_screen(void)
 /* Brightness screen                                                  */
 /* ================================================================== */
 
-static void show_brightness_screen(void)
+static lv_obj_t *create_brightness_screen(void)
 {
-    if (current_screen == SCREEN_BRIGHTNESS) {
-        return;
-    }
-
-    hide_current_screen_widgets();
-
-    prepare_screen(lv_color_hex(0x0A0A0A));
-    ensure_lvgl_indev_registered();
-
-    zmk_widget_brightness_screen_init(&brightness_widget, screen_obj);
-    zmk_widget_brightness_screen_show(&brightness_widget);
-
-    current_screen = SCREEN_BRIGHTNESS;
+    lv_obj_t *screen = make_screen();
+    zmk_widget_brightness_screen_init(&brightness_widget, screen);
+    return screen;
 }
 
 /* ================================================================== */
 /* System settings screen                                             */
 /* ================================================================== */
 
-static void show_system_settings_screen(void)
+static lv_obj_t *create_system_settings_screen(void)
 {
-    if (current_screen == SCREEN_SYSTEM_SETTINGS) {
-        return;
-    }
-
-    hide_current_screen_widgets();
-
-    prepare_screen(lv_color_hex(0x000000));
-    ensure_lvgl_indev_registered();
-
-    zmk_widget_system_settings_init(&system_settings_widget, screen_obj);
-    zmk_widget_system_settings_show(&system_settings_widget);
-
-    current_screen = SCREEN_SYSTEM_SETTINGS;
+    lv_obj_t *screen = make_screen();
+    zmk_widget_system_settings_init(&system_settings_widget, screen);
+    return screen;
 }
 
 /* ================================================================== */
-/* Swipe routing                                                      */
+/* Screen transition helpers                                          */
 /* ================================================================== */
 
-static void perform_screen_transition(enum swipe_direction dir)
+static void activate_screen(int next)
 {
-    /*
-     * Prospector 寄せ:
-     * - 画面遷移中に再入しない
-     * - UI 操作中は遷移しない
-     * - brightness / quick actions の操作を優先
-     */
-    if (transition_in_progress) {
+    if (next < 0 || next >= SCREEN_COUNT) {
         return;
     }
 
-    if (ui_interaction_active) {
-        LOG_DBG("Ignore swipe: UI interaction active");
-        return;
-    }
-
-    transition_in_progress = true;
-
-    switch (current_screen) {
-    case SCREEN_MAIN:
-        switch (dir) {
-        case SWIPE_DIRECTION_UP:
-#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-            show_bongo_screen();
-#endif
-            break;
-
-        case SWIPE_DIRECTION_DOWN:
-            show_brightness_screen();
-            break;
-
-        case SWIPE_DIRECTION_RIGHT:
-            show_system_settings_screen();
-            break;
-
-        default:
-            break;
-        }
-        break;
-
-#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-    case SCREEN_BONGO:
-        if (dir == SWIPE_DIRECTION_DOWN) {
-            show_main_screen();
-        }
-        break;
-#endif
-
-    case SCREEN_BRIGHTNESS:
-        if (dir == SWIPE_DIRECTION_UP) {
-            show_main_screen();
-        }
-        break;
-
-    case SCREEN_SYSTEM_SETTINGS:
-        if (dir == SWIPE_DIRECTION_LEFT) {
-            show_main_screen();
-        }
-        break;
-
-    default:
-        break;
-    }
-
-    transition_in_progress = false;
-}
-
-/* ================================================================== */
-/* Timer-side swipe processing                                        */
-/* ================================================================== */
-
-static void swipe_timer_cb(lv_timer_t *timer)
-{
-    ARG_UNUSED(timer);
-
-    enum swipe_direction dir = pending_swipe;
-    if (dir == SWIPE_DIRECTION_NONE) {
+    if (next == current_screen_index) {
         return;
     }
 
     /*
-     * ここで一旦クリアしてから処理することで、
-     * 再入時に同じスワイプを二重消費しない。
+     * brightness / system settings を離れるときは interaction フラグを落とす。
+     * （画面切替時に押下状態が残るのを防ぐ）
      */
-    pending_swipe = SWIPE_DIRECTION_NONE;
-    perform_screen_transition(dir);
+    ui_interaction_active = false;
+
+    current_screen_index = next;
+    lv_scr_load(screens[next]);
 }
 
 /* ================================================================== */
-/* Swipe event subscriber                                             */
+/* Swipe event listener                                               */
 /* ================================================================== */
 
-static int swipe_event_listener(const zmk_event_t *eh)
+static int swipe_gesture_event_handler(const zmk_event_t *eh)
 {
     const struct zmk_swipe_gesture_event *ev = as_zmk_swipe_gesture_event(eh);
     if (!ev) {
@@ -395,54 +289,98 @@ static int swipe_event_listener(const zmk_event_t *eh)
     }
 
     /*
-     * Prospector 方針:
-     * - イベント受信時点では LVGL API を呼ばない
-     * - 方向だけ保持して timer 側へ渡す
-     *
-     * また、brightness / system settings 側で操作中なら
-     * スワイプは捨てる。
+     * brightness スライダ操作中 / quick actions ボタン押下中は
+     * 画面遷移を抑止する。
      */
     if (ui_interaction_active) {
-        LOG_DBG("Swipe ignored while UI interaction active");
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    pending_swipe = ev->direction;
+    int next = current_screen_index;
+
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+    /*
+     * 3画面:
+     *   0 = main
+     *   1 = brightness
+     *   2 = quick actions
+     *
+     * Prospector寄せに近い操作:
+     * - LEFT  : 次へ
+     * - RIGHT : 前へ
+     * - DOUBLE_TAP : mainへ戻る
+     */
+    switch (ev->direction) {
+    case SWIPE_DIRECTION_LEFT:
+        next = (current_screen_index + 1) % SCREEN_COUNT;
+        break;
+    case SWIPE_DIRECTION_RIGHT:
+        next = (current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
+        break;
+    case SWIPE_DIRECTION_DOUBLE_TAP:
+        next = SCREEN_MAIN;
+        break;
+    default:
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+#else
+    /*
+     * 4画面:
+     *   0 = main
+     *   1 = bongo
+     *   2 = brightness
+     *   3 = quick actions
+     */
+    switch (ev->direction) {
+    case SWIPE_DIRECTION_LEFT:
+        next = (current_screen_index + 1) % SCREEN_COUNT;
+        break;
+    case SWIPE_DIRECTION_RIGHT:
+        next = (current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
+        break;
+    case SWIPE_DIRECTION_DOUBLE_TAP:
+        next = SCREEN_MAIN;
+        break;
+    default:
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+#endif
+
+    activate_screen(next);
     return ZMK_EV_EVENT_BUBBLE;
 }
 
-ZMK_LISTENER(dongle_screen_swipe_listener, swipe_event_listener);
-ZMK_SUBSCRIPTION(dongle_screen_swipe_listener, zmk_swipe_gesture_event);
+ZMK_LISTENER(swipe_gesture_screen, swipe_gesture_event_handler);
+ZMK_SUBSCRIPTION(swipe_gesture_screen, zmk_swipe_gesture_event);
 
 /* ================================================================== */
-/* Public init                                                        */
+/* Entry point                                                        */
 /* ================================================================== */
 
 lv_obj_t *zmk_display_status_screen(void)
 {
-    if (screen_obj != NULL) {
-        return screen_obj;
-    }
-
-    screen_obj = lv_obj_create(NULL);
+    display_settings_init();
 
     lv_style_init(&global_style);
-    lv_style_set_border_width(&global_style, 0);
-    lv_style_set_radius(&global_style, 0);
-    lv_style_set_pad_all(&global_style, 0);
-    lv_style_set_bg_opa(&global_style, LV_OPA_COVER);
-    lv_style_set_bg_color(&global_style, lv_color_hex(0x000000));
+    lv_style_set_text_color(&global_style, lv_color_white());
+    lv_style_set_text_letter_space(&global_style, 1);
+    lv_style_set_text_line_space(&global_style, 1);
 
-    lv_obj_add_style(screen_obj, &global_style, LV_PART_MAIN);
-    lv_obj_clear_flag(screen_obj, LV_OBJ_FLAG_SCROLLABLE);
-
-    show_main_screen();
-
-    if (swipe_timer == NULL) {
-        swipe_timer = lv_timer_create(swipe_timer_cb, 16, NULL);
-    }
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+    screens[SCREEN_MAIN] = create_main_screen();
+    screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
+    screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
+#else
+    screens[SCREEN_MAIN] = create_main_screen();
+    screens[SCREEN_BONGO] = create_bongo_screen();
+    screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
+    screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
+#endif
 
     ensure_lvgl_indev_registered();
 
-    return screen_obj;
+    current_screen_index = SCREEN_MAIN;
+    ui_interaction_active = false;
+
+    return screens[SCREEN_MAIN];
 }
