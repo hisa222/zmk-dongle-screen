@@ -389,7 +389,7 @@ static void swipe_timer_cb(lv_timer_t *timer)
 
 static int swipe_event_listener(const zmk_event_t *eh)
 {
-    const struct swipe_gesture_event *ev = as_swipe_gesture_event(eh);
+    const struct zmk_swipe_gesture_event *ev = as_zmk_swipe_gesture_event(eh);
     if (!ev) {
         return ZMK_EV_EVENT_BUBBLE;
     }
