@@ -2,13 +2,35 @@
  * Copyright (c) 2024 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  *
- * System Settings Widget
+ * System Settings Widget (LVGL8 / ZMK 3.5)
  *
- * 方針:
- * - 見た目のボタンは大きいまま
- * - 実際のクリック領域はボタン中央の狭い矩形だけにする
- * - クリック領域の外側は何も反応しない
- * - スワイプ中の誤発火を防ぐ
+ * Prospector (LVGL9/ZMK4) から移植した設計方針:
+ *
+ * [問題] リセット画面からスワイプしようとするとボタンが誤作動する
+ *
+ *   原因:
+ *     スワイプのタッチ DOWN がボタン上に落ちると LVGL が LV_EVENT_PRESSED を
+ *     発火させ、その後 UP で LV_EVENT_CLICKED が発火してリセット/ブートローダーが
+ *     実行される。
+ *
+ *   Prospector の解決策:
+ *     ① LV_EVENT_PRESSED 時に ui_interaction_active = true → スワイプをブロック
+ *     ② touch_handler.c 側でタッチ DOWN 時点で ui_interaction_active を確認し、
+ *        true なら swipe_already_raised = true にしてスワイプを抑止
+ *     ③ LV_EVENT_CLICKED 時に touch_handler_is_swiping() でスワイプ中か確認し、
+ *        スワイプ中ならボタンアクションを実行しない
+ *     ④ LV_EVENT_RELEASED / PRESS_LOST で ui_interaction_active = false に戻す
+ *
+ * [設計] hitbox 方式
+ *   見た目の大きなボタン (visual_btn) と実際の当たり判定 (hitbox) を分離。
+ *   visual_btn は LV_OBJ_FLAG_CLICKABLE を持たず、押下状態変化を起こさない。
+ *   hitbox は visual_btn の中央に配置した小さな透明オブジェクト。
+ *   これによりボタン端へのスワイプ開始でクリックが発生しにくくなる。
+ *
+ * [LVGL8 対応]
+ *   ui_interaction_active は custom_status_screen.c で定義済みの
+ *   volatile bool を extern 参照。
+ *   touch_handler_is_swiping() は touch_handler.h で宣言済み。
  */
 
 #include "system_settings_widget.h"
@@ -25,15 +47,14 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 /* Tunables                                                           */
 /* ================================================================== */
 
-/*
- * 見た目のボタンサイズ
- */
+/* 見た目のボタンサイズ */
 #define ACTION_BTN_W 220
 #define ACTION_BTN_H 60
 
 /*
- * 実際に反応する当たり判定サイズ
- * ご要望どおり、中央の正方形に近いサイズへ絞る
+ * 実際の当たり判定サイズ。
+ * ボタン中央の矩形に絞ることでスワイプ開始点がボタン端に掛かっても
+ * クリックが発生しにくくなる。
  */
 #define ACTION_HIT_W 60
 #define ACTION_HIT_H 60
@@ -47,10 +68,6 @@ struct action_btn_bundle {
     lv_obj_t *hitbox;       /* 中央の狭いクリック領域 */
 };
 
-/*
- * この widget でだけ使う静的 bundle。
- * screen は1回だけ生成される前提なのでこれで十分。
- */
 static struct action_btn_bundle boot_bundle;
 static struct action_btn_bundle reset_bundle;
 
@@ -74,7 +91,8 @@ static lv_obj_t *make_visual_btn(lv_obj_t *parent,
     lv_obj_align(obj, align, x_off, y_off);
 
     /*
-     * 見た目だけにしたいので clickable は付けない
+     * 見た目だけ: clickable は付けない。
+     * タッチイベントはすべて hitbox で受け取る。
      */
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -98,16 +116,28 @@ static lv_obj_t *make_visual_btn(lv_obj_t *parent,
 /* Interaction state callbacks                                        */
 /* ================================================================== */
 
+/*
+ * hitbox PRESSED: ui_interaction_active = true でスワイプをブロック。
+ * touch_handler.c の touch_input_callback() は INPUT_BTN_TOUCH の touch_started
+ * 時点で ui_interaction_active を確認し、true なら swipe_already_raised=true に
+ * することでスワイプを抑止する。
+ */
 static void ui_press_start_cb(lv_event_t *e)
 {
     ARG_UNUSED(e);
     ui_interaction_active = true;
+    LOG_DBG("ui_interaction_active = true (button pressed)");
 }
 
+/*
+ * hitbox RELEASED / PRESS_LOST: ui_interaction_active = false に戻す。
+ * PRESS_LOST はスワイプ等でフォーカスが外れた場合に発生する。
+ */
 static void ui_press_end_cb(lv_event_t *e)
 {
     ARG_UNUSED(e);
     ui_interaction_active = false;
+    LOG_DBG("ui_interaction_active = false (button released/lost)");
 }
 
 /* ================================================================== */
@@ -120,13 +150,19 @@ static void bootloader_cb(lv_event_t *e)
         return;
     }
 
+    /*
+     * スワイプ中はボタンアクションを実行しない。
+     * touch_handler_is_swiping() は swipe_state.in_progress を返す。
+     * スワイプで PRESS_LOST が来るより先に CLICKED が来た場合の保険。
+     */
     if (touch_handler_is_swiping()) {
         LOG_DBG("Bootloader ignored: swipe in progress");
+        ui_interaction_active = false;
         return;
     }
 
     ui_interaction_active = false;
-    LOG_INF("Enter UF2 bootloader");
+    LOG_INF("Enter UF2 bootloader (sys_reboot 0x57)");
     sys_reboot(0x57);
 }
 
@@ -138,6 +174,7 @@ static void reset_cb(lv_event_t *e)
 
     if (touch_handler_is_swiping()) {
         LOG_DBG("Reset ignored: swipe in progress");
+        ui_interaction_active = false;
         return;
     }
 
@@ -150,12 +187,16 @@ static void reset_cb(lv_event_t *e)
 /* Hitbox helper                                                      */
 /* ================================================================== */
 
+/*
+ * visual_btn の子として中央に小さい透明クリック領域を配置する。
+ *
+ * LV_OBJ_FLAG_PRESS_LOCK を clear しておくことで、hitbox 外にタッチが
+ * 移動してもイベントが hitbox にロックされず、親に抜けていく。
+ * これによりスワイプ中に CLICK が発生しにくくなる。
+ */
 static lv_obj_t *make_center_hitbox(lv_obj_t *parent_visual_btn,
                                     lv_event_cb_t clicked_cb)
 {
-    /*
-     * visual_btn の子として、中央に小さいクリック領域を置く
-     */
     lv_obj_t *hit = lv_obj_create(parent_visual_btn);
     if (!hit) {
         return NULL;
@@ -168,9 +209,7 @@ static lv_obj_t *make_center_hitbox(lv_obj_t *parent_visual_btn,
     lv_obj_clear_flag(hit, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_clear_flag(hit, LV_OBJ_FLAG_PRESS_LOCK);
 
-    /*
-     * 見た目は完全透明
-     */
+    /* 完全透明 */
     lv_obj_set_style_bg_opa(hit, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_opa(hit, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_outline_opa(hit, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -178,16 +217,19 @@ static lv_obj_t *make_center_hitbox(lv_obj_t *parent_visual_btn,
     lv_obj_set_style_pad_all(hit, 0, LV_PART_MAIN);
 
     /*
-     * interaction 管理
+     * PRESSED: ui_interaction_active = true
+     * RELEASED / PRESS_LOST: ui_interaction_active = false
+     * CLICKED: 実アクション (スワイプ中はスキップ)
+     *
+     * 登録順序: PRESSED → RELEASED/PRESS_LOST → CLICKED
+     * LVGL はイベントを登録順に呼び出す。
+     * CLICKED は RELEASED の後で発火するので、RELEASED で
+     * ui_interaction_active=false にしてから CLICKED を処理させる。
      */
-    lv_obj_add_event_cb(hit, ui_press_start_cb, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(hit, ui_press_end_cb,   LV_EVENT_RELEASED, NULL);
+    lv_obj_add_event_cb(hit, ui_press_start_cb, LV_EVENT_PRESSED,    NULL);
+    lv_obj_add_event_cb(hit, ui_press_end_cb,   LV_EVENT_RELEASED,   NULL);
     lv_obj_add_event_cb(hit, ui_press_end_cb,   LV_EVENT_PRESS_LOST, NULL);
-
-    /*
-     * 実アクション
-     */
-    lv_obj_add_event_cb(hit, clicked_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(hit, clicked_cb,         LV_EVENT_CLICKED,    NULL);
 
     return hit;
 }
@@ -205,7 +247,9 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
 
     widget->obj = parent;
 
+    /* ---- タイトル ---- */
     widget->title_label = lv_label_create(parent);
+    if (!widget->title_label) { return -ENOMEM; }
     lv_label_set_text(widget->title_label, "Quick Actions");
     lv_obj_set_style_text_color(widget->title_label,
                                 lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
@@ -213,9 +257,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
                                &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
-    /*
-     * Bootloader visual button
-     */
+    /* ---- Bootloader visual button ---- */
     boot_bundle.visual_btn = make_visual_btn(
         parent,
         "Enter Bootloader",
@@ -230,9 +272,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         return -ENOMEM;
     }
 
-    /*
-     * Reset visual button
-     */
+    /* ---- Reset visual button ---- */
     reset_bundle.visual_btn = make_visual_btn(
         parent,
         "System Reset",
@@ -247,13 +287,13 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         return -ENOMEM;
     }
 
-    /*
-     * 既存 API 互換のため、widget 内には visual_btn を入れておく
-     */
+    /* API 互換のため widget フィールドへも格納 */
     widget->bootloader_btn = boot_bundle.visual_btn;
-    widget->reset_btn = reset_bundle.visual_btn;
+    widget->reset_btn      = reset_bundle.visual_btn;
 
+    /* ---- ナビゲーションヒント ---- */
     widget->nav_hint = lv_label_create(parent);
+    if (!widget->nav_hint) { return -ENOMEM; }
     lv_label_set_text(widget->nav_hint, "< swipe >");
     lv_obj_set_style_text_color(widget->nav_hint,
                                 lv_color_hex(0x444444), LV_STATE_DEFAULT);
@@ -264,28 +304,44 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     return 0;
 }
 
+/* ================================================================== */
+/* Show / Hide                                                        */
+/* ================================================================== */
+
 void zmk_widget_system_settings_show(struct zmk_widget_system_settings *widget)
 {
     ARG_UNUSED(widget);
+    /*
+     * 画面表示時に interaction フラグをリセットする。
+     * 前の画面でフラグが立ったままになっているケースへの保険。
+     */
     ui_interaction_active = false;
+    LOG_DBG("System settings shown, ui_interaction_active reset");
 }
 
 void zmk_widget_system_settings_hide(struct zmk_widget_system_settings *widget)
 {
+    /*
+     * 画面離脱時に interaction フラグをリセットする。
+     * スワイプ遷移でボタン押下中に画面が切り替わった場合の保険。
+     */
     ui_interaction_active = false;
 
     if (!widget) {
         return;
     }
 
-    widget->title_label = NULL;
+    /* ポインタをクリア (screen が lv_scr_load で切り替わっても安全) */
+    widget->title_label    = NULL;
     widget->bootloader_btn = NULL;
-    widget->reset_btn = NULL;
-    widget->nav_hint = NULL;
-    widget->obj = NULL;
+    widget->reset_btn      = NULL;
+    widget->nav_hint       = NULL;
+    widget->obj            = NULL;
 
-    boot_bundle.visual_btn = NULL;
-    boot_bundle.hitbox = NULL;
+    boot_bundle.visual_btn  = NULL;
+    boot_bundle.hitbox      = NULL;
     reset_bundle.visual_btn = NULL;
-    reset_bundle.hitbox = NULL;
+    reset_bundle.hitbox     = NULL;
+
+    LOG_DBG("System settings hidden, ui_interaction_active reset");
 }
