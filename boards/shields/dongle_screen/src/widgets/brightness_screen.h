@@ -8,12 +8,6 @@
 #include <lvgl.h>
 #include <stdbool.h>
 
-/*
- * custom_status_screen.c 側で定義される共有フラグ。
- * スライダ操作中は true にする。
- */
-extern bool ui_interaction_active;
-
 struct zmk_widget_brightness_screen {
     lv_obj_t *obj;             /* root container */
     lv_obj_t *title_label;
