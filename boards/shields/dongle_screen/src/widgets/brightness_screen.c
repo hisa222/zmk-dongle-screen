@@ -174,7 +174,7 @@ int zmk_widget_brightness_screen_init(struct zmk_widget_brightness_screen *widge
     lv_obj_set_style_text_color(widget->value_label,
                                 lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->value_label,
-                               &lv_font_montserrat_28, LV_STATE_DEFAULT);
+                               &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->value_label, LV_ALIGN_CENTER, 0, -28);
     update_value_label(widget, widget->current_value);
 
