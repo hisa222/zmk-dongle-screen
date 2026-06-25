@@ -9,11 +9,10 @@
 
 /*
  * brightness_screen.c がこの weak 関数を override する。
- * raw touch 座標を受け取り、スライダー領域かどうかを判定する。
+ * Prospector と同様に引数なし版を使用する。
+ * スライダー操作中 + brightness screen 表示中かどうかを返す。
  */
-__attribute__((weak)) bool display_settings_is_interacting(uint16_t raw_x, uint16_t raw_y) {
-    ARG_UNUSED(raw_x);
-    ARG_UNUSED(raw_y);
+__attribute__((weak)) bool display_settings_is_interacting(void) {
     return false;
 }
 
@@ -33,9 +32,9 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #error "Touch sensor device tree node not found"
 #endif
 
-#define SWIPE_THRESHOLD 30
-#define SWIPE_COOLDOWN_MS 400
-#define DOUBLE_TAP_THRESHOLD 10
+#define SWIPE_THRESHOLD       30
+#define SWIPE_COOLDOWN_MS     400
+#define DOUBLE_TAP_THRESHOLD  10
 #define DOUBLE_TAP_INTERVAL_MS 350
 
 static struct touch_event_data last_event = {0};
@@ -60,7 +59,7 @@ static struct {
 } swipe_state = {0};
 
 static int64_t last_swipe_time = 0;
-static int64_t last_tap_time = 0;
+static int64_t last_tap_time   = 0;
 static bool swipe_already_raised = false;
 
 bool touch_handler_is_swiping(void) {
@@ -78,18 +77,19 @@ static void raise_swipe_event(enum swipe_direction direction)
     }
 
     /*
-     * brightness slider / button interaction 中はスワイプを上げない
+     * Prospector と同様: ui_interaction_active か display_settings_is_interacting()
+     * のどちらかが true ならスワイプをブロック。
+     * ただし brightness slider が縦スワイプで drag_cancelled になった際は
+     * display_settings_is_interacting() が false を返し、かつ
+     * ui_interaction_active も false になるため、スワイプは通過できる。
      */
     if (ui_interaction_active) {
         LOG_DBG("Swipe blocked - ui_interaction_active");
         return;
     }
 
-    /*
-     * brightness screen の生座標判定でもブロック
-     */
-    if (display_settings_is_interacting(current_x, current_y)) {
-        LOG_DBG("Swipe blocked - brightness slider interaction");
+    if (display_settings_is_interacting()) {
+        LOG_DBG("Swipe blocked - display_settings_is_interacting");
         return;
     }
 
@@ -147,71 +147,69 @@ static void touch_input_callback(struct input_event *evt, void *user_data)
     case INPUT_BTN_TOUCH:
         touch_active = (evt->value != 0);
 
-        if (!x_updated || !y_updated) {
-            /* 座標がまだ更新されていなくても前回値を使う */
-        }
-
-        last_event.x = current_x;
-        last_event.y = current_y;
-        last_event.touched = touch_active;
+        last_event.x         = current_x;
+        last_event.y         = current_y;
+        last_event.touched   = touch_active;
         last_event.timestamp = k_uptime_get_32();
 
-        bool touch_started = touch_active && !prev_touch_active;
+        {
+            bool touch_started = touch_active && !prev_touch_active;
 
-        if (touch_started) {
-            swipe_state.start_x = current_x;
-            swipe_state.start_y = current_y;
-            swipe_state.start_time = k_uptime_get();
-            swipe_state.in_progress = true;
-            swipe_already_raised = false;
-
-            /*
-             * スライダー領域に touch down したら、その touch では
-             * swipe を発生させない
-             */
-            if (display_settings_is_interacting(current_x, current_y)) {
-                swipe_already_raised = true;
-            }
-
-            x_updated = false;
-            y_updated = false;
-        } else if (!touch_active) {
-            /* Touch UP */
-            if (!swipe_already_raised && swipe_state.in_progress && !ui_interaction_active) {
-                int16_t raw_dx = current_x - swipe_state.start_x;
-                int16_t raw_dy = current_y - swipe_state.start_y;
+            if (touch_started) {
+                swipe_state.start_x    = current_x;
+                swipe_state.start_y    = current_y;
+                swipe_state.start_time = k_uptime_get();
+                swipe_state.in_progress = true;
+                swipe_already_raised    = false;
 
                 /*
-                 * ROTATED_270 用変換:
-                 * Touch Y → Display X
-                 * Touch X → Display Y (inverted)
+                 * タッチ開始時点で ui_interaction_active が true
+                 * (= スライダー操作中) ならば、この touch 中はスワイプを起こさない
                  */
-                int16_t dx = raw_dy;
-                int16_t dy = -raw_dx;
+                if (ui_interaction_active || display_settings_is_interacting()) {
+                    swipe_already_raised = true;
+                }
 
-                int16_t abs_dx = (dx < 0) ? -dx : dx;
-                int16_t abs_dy = (dy < 0) ? -dy : dy;
+                x_updated = false;
+                y_updated = false;
+            } else if (!touch_active) {
+                /* Touch UP */
+                if (!swipe_already_raised && swipe_state.in_progress && !ui_interaction_active) {
+                    int16_t raw_dx = current_x - swipe_state.start_x;
+                    int16_t raw_dy = current_y - swipe_state.start_y;
 
-                if (abs_dy > abs_dx && abs_dy > SWIPE_THRESHOLD) {
-                    raise_swipe_event(dy > 0 ? SWIPE_DIRECTION_DOWN : SWIPE_DIRECTION_UP);
-                } else if (abs_dx > abs_dy && abs_dx > SWIPE_THRESHOLD) {
-                    raise_swipe_event(dx > 0 ? SWIPE_DIRECTION_RIGHT : SWIPE_DIRECTION_LEFT);
-                } else if (abs_dx <= DOUBLE_TAP_THRESHOLD && abs_dy <= DOUBLE_TAP_THRESHOLD) {
-                    int64_t tap_now = k_uptime_get();
-                    if ((tap_now - last_tap_time) < DOUBLE_TAP_INTERVAL_MS && last_tap_time > 0) {
-                        last_tap_time = 0;
-                        raise_swipe_event(SWIPE_DIRECTION_DOUBLE_TAP);
-                    } else {
-                        last_tap_time = tap_now;
+                    /*
+                     * ROTATED_270 用変換:
+                     * Touch Y → Display X
+                     * Touch X → Display Y (inverted)
+                     */
+                    int16_t dx = raw_dy;
+                    int16_t dy = -raw_dx;
+
+                    int16_t abs_dx = (dx < 0) ? -dx : dx;
+                    int16_t abs_dy = (dy < 0) ? -dy : dy;
+
+                    if (abs_dy > abs_dx && abs_dy > SWIPE_THRESHOLD) {
+                        raise_swipe_event(dy > 0 ? SWIPE_DIRECTION_DOWN : SWIPE_DIRECTION_UP);
+                    } else if (abs_dx > abs_dy && abs_dx > SWIPE_THRESHOLD) {
+                        raise_swipe_event(dx > 0 ? SWIPE_DIRECTION_RIGHT : SWIPE_DIRECTION_LEFT);
+                    } else if (abs_dx <= DOUBLE_TAP_THRESHOLD && abs_dy <= DOUBLE_TAP_THRESHOLD) {
+                        int64_t tap_now = k_uptime_get();
+                        if ((tap_now - last_tap_time) < DOUBLE_TAP_INTERVAL_MS && last_tap_time > 0) {
+                            last_tap_time = 0;
+                            raise_swipe_event(SWIPE_DIRECTION_DOUBLE_TAP);
+                        } else {
+                            last_tap_time = tap_now;
+                        }
                     }
                 }
+
+                swipe_state.in_progress  = false;
+                swipe_already_raised     = false;
+
+                x_updated = false;
+                y_updated = false;
             }
-
-            swipe_state.in_progress = false;
-            swipe_already_raised = false;
-
-            x_updated = false;
-            y_updated = false;
         }
 
         if (registered_callback) {
@@ -242,14 +240,14 @@ static void lvgl_input_read(lv_indev_t *indev, lv_indev_data_t *data)
     int32_t logical_x = current_y;
     int32_t logical_y = 239 - current_x;
 
-    if (logical_x < 0) logical_x = 0;
+    if (logical_x < 0)   logical_x = 0;
     if (logical_x > 279) logical_x = 279;
-    if (logical_y < 0) logical_y = 0;
+    if (logical_y < 0)   logical_y = 0;
     if (logical_y > 239) logical_y = 239;
 
     data->point.x = logical_x;
     data->point.y = logical_y;
-    data->state = touch_active ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    data->state   = touch_active ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
 }
 
 int touch_handler_init(void)
@@ -271,9 +269,10 @@ int touch_handler_register_lvgl_indev(void)
         return 0;
     }
 
+    /* LVGL8 API: lv_indev_drv_init + lv_indev_drv_register */
     static lv_indev_drv_t indev_drv;
     lv_indev_drv_init(&indev_drv);
-    indev_drv.type = LV_INDEV_TYPE_POINTER;
+    indev_drv.type    = LV_INDEV_TYPE_POINTER;
     indev_drv.read_cb = lvgl_input_read;
 
     lvgl_indev = lv_indev_drv_register(&indev_drv);
