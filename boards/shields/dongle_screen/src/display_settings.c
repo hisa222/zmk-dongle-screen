@@ -110,6 +110,8 @@ SETTINGS_STATIC_HANDLER_DEFINE(dongle_screen_brightness, "dongle_screen",
 
 int display_settings_init(void)
 {
+    int ret = 0;
+
     if (g_initialized) {
         return 0;
     }
@@ -119,14 +121,15 @@ int display_settings_init(void)
      * settings subsystem が有効ならロードを試みる。
      * 失敗してもデフォルト値で継続。
      */
-    int ret = settings_load_subtree("dongle_screen");
+    ret = settings_load_subtree("dongle_screen");
     if (ret) {
         LOG_WRN("settings_load_subtree(dongle_screen) failed: %d", ret);
     }
 #endif
 
     g_brightness = clamp_brightness(g_brightness);
-    int ret = apply_brightness(g_brightness);
+
+    ret = apply_brightness(g_brightness);
     if (ret) {
         LOG_WRN("Failed to apply initial brightness %u: %d", g_brightness, ret);
     }
