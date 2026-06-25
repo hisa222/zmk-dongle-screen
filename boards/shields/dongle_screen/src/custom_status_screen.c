@@ -94,6 +94,12 @@ static bool lvgl_indev_registered = false;
 /* global style */
 lv_style_t global_style;
 
+/*
+ * brightness_screen.c / system_settings_widget.c から参照される
+ * 「今 UI 操作中か」の共有フラグ。
+ */
+bool ui_interaction_active = false;
+
 /* ================================================================== */
 /* Helpers                                                            */
 /* ================================================================== */
@@ -275,7 +281,7 @@ static void show_system_settings_screen(void)
 
     hide_current_screen_widgets();
 
-    prepare_screen(lv_color_hex(0x0A0A0A));
+    prepare_screen(lv_color_hex(0x000000));
     ensure_lvgl_indev_registered();
 
     zmk_widget_system_settings_init(&system_settings_widget, screen_obj);
@@ -285,86 +291,82 @@ static void show_system_settings_screen(void)
 }
 
 /* ================================================================== */
-/* Screen routing                                                     */
+/* Swipe routing                                                      */
 /* ================================================================== */
 
-static void route_swipe(enum swipe_direction dir)
+static void perform_screen_transition(enum swipe_direction dir)
 {
+    /*
+     * Prospector 寄せ:
+     * - 画面遷移中に再入しない
+     * - UI 操作中は遷移しない
+     * - brightness / quick actions の操作を優先
+     */
+    if (transition_in_progress) {
+        return;
+    }
+
+    if (ui_interaction_active) {
+        LOG_DBG("Ignore swipe: UI interaction active");
+        return;
+    }
+
+    transition_in_progress = true;
+
     switch (current_screen) {
     case SCREEN_MAIN:
-        if (dir == SWIPE_DIRECTION_LEFT) {
-            show_brightness_screen();
-            return;
-        }
-        if (dir == SWIPE_DIRECTION_RIGHT) {
-            show_system_settings_screen();
-            return;
-        }
+        switch (dir) {
+        case SWIPE_DIRECTION_UP:
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        if (dir == SWIPE_DIRECTION_UP || dir == SWIPE_DIRECTION_DOWN) {
             show_bongo_screen();
-            return;
-        }
 #endif
+            break;
+
+        case SWIPE_DIRECTION_DOWN:
+            show_brightness_screen();
+            break;
+
+        case SWIPE_DIRECTION_RIGHT:
+            show_system_settings_screen();
+            break;
+
+        default:
+            break;
+        }
         break;
 
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     case SCREEN_BONGO:
-        if (dir == SWIPE_DIRECTION_UP || dir == SWIPE_DIRECTION_DOWN ||
-            dir == SWIPE_DIRECTION_LEFT || dir == SWIPE_DIRECTION_RIGHT ||
-            dir == SWIPE_DIRECTION_DOUBLE_TAP) {
+        if (dir == SWIPE_DIRECTION_DOWN) {
             show_main_screen();
-            return;
         }
         break;
 #endif
 
     case SCREEN_BRIGHTNESS:
-        if (dir == SWIPE_DIRECTION_RIGHT || dir == SWIPE_DIRECTION_DOUBLE_TAP) {
+        if (dir == SWIPE_DIRECTION_UP) {
             show_main_screen();
-            return;
         }
         break;
 
     case SCREEN_SYSTEM_SETTINGS:
-        if (dir == SWIPE_DIRECTION_LEFT || dir == SWIPE_DIRECTION_DOUBLE_TAP) {
+        if (dir == SWIPE_DIRECTION_LEFT) {
             show_main_screen();
-            return;
         }
         break;
 
     default:
         break;
     }
+
+    transition_in_progress = false;
 }
 
 /* ================================================================== */
-/* Swipe event handling                                               */
+/* Timer-side swipe processing                                        */
 /* ================================================================== */
 
-static int swipe_gesture_event_handler(const zmk_event_t *eh)
-{
-    const struct zmk_swipe_gesture_event *ev = as_zmk_swipe_gesture_event(eh);
-    if (!ev) {
-        return -ENOTSUP;
-    }
-
-    /*
-     * Prospector と同じ方針:
-     * ここでは LVGL API を触らず、方向を pending に積むだけ。
-     */
-    pending_swipe = ev->direction;
-    return ZMK_EV_EVENT_BUBBLE;
-}
-
-ZMK_LISTENER(swipe_gesture_screen, swipe_gesture_event_handler);
-ZMK_SUBSCRIPTION(swipe_gesture_screen, zmk_swipe_gesture_event);
-
-/* ================================================================== */
-/* LVGL timer                                                         */
-/* ================================================================== */
-
-static void swipe_process_timer_cb(lv_timer_t *timer)
+static void swipe_timer_cb(lv_timer_t *timer)
 {
     ARG_UNUSED(timer);
 
@@ -373,49 +375,74 @@ static void swipe_process_timer_cb(lv_timer_t *timer)
         return;
     }
 
+    /*
+     * ここで一旦クリアしてから処理することで、
+     * 再入時に同じスワイプを二重消費しない。
+     */
     pending_swipe = SWIPE_DIRECTION_NONE;
-
-    if (ui_interaction_active) {
-        LOG_DBG("Swipe ignored: UI interaction active");
-        return;
-    }
-
-    if (transition_in_progress) {
-        LOG_DBG("Swipe ignored: transition already in progress");
-        return;
-    }
-
-    transition_in_progress = true;
-    route_swipe(dir);
-    transition_in_progress = false;
+    perform_screen_transition(dir);
 }
 
 /* ================================================================== */
-/* Public entry                                                       */
+/* Swipe event subscriber                                             */
+/* ================================================================== */
+
+static int swipe_event_listener(const zmk_event_t *eh)
+{
+    const struct swipe_gesture_event *ev = as_swipe_gesture_event(eh);
+    if (!ev) {
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    /*
+     * Prospector 方針:
+     * - イベント受信時点では LVGL API を呼ばない
+     * - 方向だけ保持して timer 側へ渡す
+     *
+     * また、brightness / system settings 側で操作中なら
+     * スワイプは捨てる。
+     */
+    if (ui_interaction_active) {
+        LOG_DBG("Swipe ignored while UI interaction active");
+        return ZMK_EV_EVENT_BUBBLE;
+    }
+
+    pending_swipe = ev->direction;
+    return ZMK_EV_EVENT_BUBBLE;
+}
+
+ZMK_LISTENER(dongle_screen_swipe_listener, swipe_event_listener);
+ZMK_SUBSCRIPTION(dongle_screen_swipe_listener, swipe_gesture_event);
+
+/* ================================================================== */
+/* Public init                                                        */
 /* ================================================================== */
 
 lv_obj_t *zmk_display_status_screen(void)
 {
-    display_settings_init();
-
-    lv_style_init(&global_style);
-    lv_style_set_text_color(&global_style, lv_color_white());
-    lv_style_set_text_letter_space(&global_style, 1);
-    lv_style_set_text_line_space(&global_style, 1);
+    if (screen_obj != NULL) {
+        return screen_obj;
+    }
 
     screen_obj = lv_obj_create(NULL);
-    lv_obj_set_style_bg_color(screen_obj, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(screen_obj, LV_OPA_COVER, LV_PART_MAIN);
+
+    lv_style_init(&global_style);
+    lv_style_set_border_width(&global_style, 0);
+    lv_style_set_radius(&global_style, 0);
+    lv_style_set_pad_all(&global_style, 0);
+    lv_style_set_bg_opa(&global_style, LV_OPA_COVER);
+    lv_style_set_bg_color(&global_style, lv_color_hex(0x000000));
+
     lv_obj_add_style(screen_obj, &global_style, LV_PART_MAIN);
+    lv_obj_clear_flag(screen_obj, LV_OBJ_FLAG_SCROLLABLE);
+
+    show_main_screen();
+
+    if (swipe_timer == NULL) {
+        swipe_timer = lv_timer_create(swipe_timer_cb, 16, NULL);
+    }
 
     ensure_lvgl_indev_registered();
-
-    create_main_screen_widgets();
-    current_screen = SCREEN_MAIN;
-
-    if (!swipe_timer) {
-        swipe_timer = lv_timer_create(swipe_process_timer_cb, 16, NULL);
-    }
 
     return screen_obj;
 }
