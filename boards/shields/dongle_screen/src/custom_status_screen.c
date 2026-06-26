@@ -49,6 +49,11 @@ static struct zmk_widget_wpm_status wpm_status_widget;
 static struct zmk_widget_mod_status mod_widget;
 #endif
 
+#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
+#include "widgets/keyboard_name_status.h"
+static struct zmk_widget_keyboard_name_status keyboard_name_status_widget;
+#endif
+
 #include "widgets/bongo_cat.h"
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 static struct zmk_widget_bongo_cat main_bongo_cat_widget;
@@ -182,6 +187,14 @@ static lv_obj_t *create_main_screen(void)
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_MID, 0, 50);
 #endif
+
+#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
+    /* キーボード名ウィジェット（レイヤー表示の上） */
+    zmk_widget_keyboard_name_status_init(&keyboard_name_status_widget, screen);
+    lv_obj_align(zmk_widget_keyboard_name_status_obj(&keyboard_name_status_widget),
+                 LV_ALIGN_CENTER, 0, -20);   /* layer が y=0 なのでその上 -20px */
+#endif
+    
 /*
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
     zmk_widget_mod_status_init(&mod_widget, screen);
