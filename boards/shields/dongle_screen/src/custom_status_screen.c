@@ -245,47 +245,6 @@ static lv_obj_t *create_brightness_screen(void)
 }
 
 /* ================================================================== */
-/* Volume screen                                                  */
-/* ================================================================== */
-
-static lv_obj_t *create_volume_control_screen(void)
-{
-    lv_obj_t *screen = make_screen();
-
-    /* ------- ミュート ------- */
-
-    lv_obj_t *btn = lv_btn_create(screen);
-    lv_obj_set_size(btn, 90, 60);
-    lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, 35);
-
-    lv_obj_t *label = lv_label_create(btn);
-    lv_label_set_text(label, LV_SYMBOL_AUDIO " Mute");
-    lv_obj_center(label);
-
-    /* ------- 音量ダウン ------- */
-
-    btn = lv_btn_create(screen);
-    lv_obj_set_size(btn, 90, 60);
-    lv_obj_align(btn, LV_ALIGN_BOTTOM_LEFT, 35, -35);
-
-    label = lv_label_create(btn);
-    lv_label_set_text(label, LV_SYMBOL_MINUS " Vol");
-    lv_obj_center(label);
-
-    /* ------- 音量アップ ------- */
-
-    btn = lv_btn_create(screen);
-    lv_obj_set_size(btn, 90, 60);
-    lv_obj_align(btn, LV_ALIGN_BOTTOM_RIGHT, -35, -35);
-
-    label = lv_label_create(btn);
-    lv_label_set_text(label, LV_SYMBOL_PLUS " Vol");
-    lv_obj_center(label);
-
-    return screen;
-}
-
-/* ================================================================== */
 /* System settings screen                                             */
 /* ================================================================== */
 
@@ -293,6 +252,17 @@ static lv_obj_t *create_system_settings_screen(void)
 {
     lv_obj_t *screen = make_screen();
     zmk_widget_system_settings_init(&system_settings_widget, screen);
+    return screen;
+}
+
+/* ================================================================== */
+/* Volume screen                                                  */
+/* ================================================================== */
+
+static lv_obj_t *create_volume_control_screen(void)
+{
+    lv_obj_t *screen = make_screen();
+    zmk_widget_volume_control_init(&volume_control_widget, screen);
     return screen;
 }
 
