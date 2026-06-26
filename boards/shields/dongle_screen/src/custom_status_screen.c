@@ -52,10 +52,15 @@ static struct zmk_widget_mod_status mod_widget;
 #include "widgets/bongo_cat.h"
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 static struct zmk_widget_bongo_cat main_bongo_cat_widget;
+#endif
+
+/*
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+static struct zmk_widget_bongo_cat main_bongo_cat_widget;
 #else
 static struct zmk_widget_bongo_cat bongo_screen_widget;
 #endif
-
+*/
 static struct zmk_widget_brightness_screen brightness_widget;
 static struct zmk_widget_system_settings system_settings_widget;
 
@@ -88,6 +93,7 @@ volatile bool ui_interaction_active = false;
 
 #define SCREEN_COUNT 3
 
+/*
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
@@ -95,6 +101,14 @@ enum dongle_screen_id {
     SCREEN_BRIGHTNESS = 2,
     SCREEN_SYSTEM_SETTINGS = 3,
 #else
+    SCREEN_BRIGHTNESS = 1,
+    SCREEN_SYSTEM_SETTINGS = 2,
+#endif
+};
+*/
+
+enum dongle_screen_id {
+    SCREEN_MAIN = 0,
     SCREEN_BRIGHTNESS = 1,
     SCREEN_SYSTEM_SETTINGS = 2,
 #endif
@@ -300,19 +314,8 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh)
     }
 
     int next = current_screen_index;
-
+/*
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-    /*
-     * 3画面:
-     *   0 = main
-     *   1 = brightness
-     *   2 = quick actions
-     *
-     * Prospector寄せに近い操作:
-     * - LEFT  : 次へ
-     * - RIGHT : 前へ
-     * - DOUBLE_TAP : mainへ戻る
-     */
     switch (ev->direction) {
     case SWIPE_DIRECTION_LEFT:
         next = (current_screen_index + 1) % SCREEN_COUNT;
@@ -327,13 +330,6 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh)
         return ZMK_EV_EVENT_BUBBLE;
     }
 #else
-    /*
-     * 4画面:
-     *   0 = main
-     *   1 = bongo
-     *   2 = brightness
-     *   3 = quick actions
-     */
     switch (ev->direction) {
     case SWIPE_DIRECTION_LEFT:
         next = (current_screen_index + 1) % SCREEN_COUNT;
@@ -348,6 +344,20 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh)
         return ZMK_EV_EVENT_BUBBLE;
     }
 #endif
+*/
+    switch (ev->direction) {
+    case SWIPE_DIRECTION_LEFT:
+        next = (current_screen_index + 1) % SCREEN_COUNT;
+        break;
+    case SWIPE_DIRECTION_RIGHT:
+        next = (current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
+        break;
+    case SWIPE_DIRECTION_DOUBLE_TAP:
+        next = SCREEN_MAIN;
+        break;
+    default:
+        return ZMK_EV_EVENT_BUBBLE;
+    }
 
     activate_screen(next);
     return ZMK_EV_EVENT_BUBBLE;
