@@ -217,8 +217,8 @@ static lv_obj_t *create_main_screen(void)
 /* ================================================================== */
 /* Bongo-only screen                                                  */
 /* ================================================================== */
-
-#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+/*
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 static lv_obj_t *create_bongo_screen(void)
 {
     lv_obj_t *screen = make_screen();
@@ -230,7 +230,7 @@ static lv_obj_t *create_bongo_screen(void)
     return screen;
 }
 #endif
-
+*/
 /* ================================================================== */
 /* Brightness screen                                                  */
 /* ================================================================== */
