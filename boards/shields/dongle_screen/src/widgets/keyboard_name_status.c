@@ -9,7 +9,7 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display.h>
-#include <zmk/display/widgets/keyboard_name_status.h>
+#include "widgets/keyboard_name_status.h"
 
 int zmk_widget_keyboard_name_status_init(struct zmk_widget_keyboard_name_status *widget,
                                          lv_obj_t *parent)
@@ -20,7 +20,7 @@ int zmk_widget_keyboard_name_status_init(struct zmk_widget_keyboard_name_status 
     lv_label_set_text(widget->obj, CONFIG_ZMK_KEYBOARD_NAME);
 
     /* フォント設定 */
-    lv_obj_set_style_text_font(widget->obj, &lv_font_montserrat_16, 0);
+    lv_obj_set_style_text_font(widget->obj, &lv_font_montserrat_40, 0);
 
     /* 文字色を青色に設定 */
     lv_obj_set_style_text_color(widget->obj, lv_color_hex(0x0000FF), 0);
