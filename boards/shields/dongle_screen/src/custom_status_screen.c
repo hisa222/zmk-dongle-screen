@@ -366,6 +366,11 @@ lv_obj_t *zmk_display_status_screen(void)
     lv_style_set_text_letter_space(&global_style, 1);
     lv_style_set_text_line_space(&global_style, 1);
 
+    screens[SCREEN_MAIN] = create_main_screen();
+    screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
+    screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
+    
+/*
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     screens[SCREEN_MAIN] = create_main_screen();
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
@@ -376,7 +381,7 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
     screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
 #endif
-
+*/
     ensure_lvgl_indev_registered();
 
     current_screen_index = SCREEN_MAIN;
