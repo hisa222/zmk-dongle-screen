@@ -111,7 +111,6 @@ enum dongle_screen_id {
     SCREEN_MAIN = 0,
     SCREEN_BRIGHTNESS = 1,
     SCREEN_SYSTEM_SETTINGS = 2,
-#endif
 };
 
 static lv_obj_t *screens[SCREEN_COUNT];
