@@ -78,12 +78,15 @@ volatile bool ui_interaction_active = false;
 /* ================================================================== */
 /* Screen management                                                  */
 /* ================================================================== */
-
+/*
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
 #define SCREEN_COUNT 3
 #else
 #define SCREEN_COUNT 4
 #endif
+*/
+
+#define SCREEN_COUNT 3
 
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
