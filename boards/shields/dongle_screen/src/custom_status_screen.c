@@ -187,13 +187,6 @@ static lv_obj_t *create_main_screen(void)
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_MID, 0, 50);
 #endif
-
-#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
-    /* キーボード名ウィジェット（レイヤー表示の上） */
-    zmk_widget_keyboard_name_status_init(&keyboard_name_status_widget, screen);
-    lv_obj_align(zmk_widget_keyboard_name_status_obj(&keyboard_name_status_widget),
-                 LV_ALIGN_CENTER, 0, -20);   /* layer が y=0 なのでその上 -20px */
-#endif
     
 /*
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
@@ -236,6 +229,13 @@ static lv_obj_t *create_main_screen(void)
     zmk_widget_mod_status_init(&mod_widget, screen);
     lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
                  LV_ALIGN_CENTER, 0, 35);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
+    /* キーボード名ウィジェット（レイヤー表示の上） */
+    zmk_widget_keyboard_name_status_init(&keyboard_name_status_widget, screen);
+    lv_obj_align(zmk_widget_keyboard_name_status_obj(&keyboard_name_status_widget),
+                 LV_ALIGN_CENTER, 0, -40);   /* layer が y=0 なのでその上 -20px */
 #endif
 
 #endif
