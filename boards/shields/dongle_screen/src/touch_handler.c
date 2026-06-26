@@ -237,8 +237,11 @@ static void lvgl_input_read(lv_indev_t *indev, lv_indev_data_t *data)
 {
     ARG_UNUSED(indev);
 
-    int32_t logical_x = current_y;
-    int32_t logical_y = 239 - current_x;
+    // int32_t logical_x = current_y;
+    // int32_t logical_y = 239 - current_x;
+
+    int32_t logical_x = current_x;
+    int32_t logical_y = current_y;
 
     if (logical_x < 0)   logical_x = 0;
     if (logical_x > 279) logical_x = 279;
