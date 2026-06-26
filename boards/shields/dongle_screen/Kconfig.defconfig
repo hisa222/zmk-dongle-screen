@@ -170,6 +170,15 @@ config DONGLE_SCREEN_BATTERY_ACTIVE
     help
       If the Battery Widget should be active or not
 
+config DONGLE_SCREEN_NAME_ACTIVE
+    bool "Name Widget active"
+    default y
+    help
+      If the Keyboard_Name Widget should be active or not
+
+config ZMK_KEYBOARD_NAME
+    default "ErgoSloth"
+
 config DONGLE_SCREEN_BONGO_CAT_ACTIVE
     bool "BongoCat Widget active"
     default y
