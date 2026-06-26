@@ -9,7 +9,7 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display.h>
-#include "widgets/keyboard_name_status.h"
+#include "keyboard_name_status.h"
 
 int zmk_widget_keyboard_name_status_init(struct zmk_widget_keyboard_name_status *widget,
                                          lv_obj_t *parent)
