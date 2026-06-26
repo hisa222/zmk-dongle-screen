@@ -182,13 +182,13 @@ static lv_obj_t *create_main_screen(void)
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_MID, 0, 50);
 #endif
-
+/*
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
     zmk_widget_mod_status_init(&mod_widget, screen);
     lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
                  LV_ALIGN_TOP_MID, 0, 85);
 #endif
-
+*/
     zmk_widget_bongo_cat_init(&main_bongo_cat_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&main_bongo_cat_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
