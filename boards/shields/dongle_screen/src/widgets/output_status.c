@@ -79,7 +79,7 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
 
             lv_obj_set_style_text_color(widget->transport_label,
                                         usb_color,
-                                        LV_PART_MAIN);
+                                        0);
         break;
 
         case ZMK_TRANSPORT_BLE:
@@ -91,7 +91,7 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
 
             lv_obj_set_style_text_color(widget->transport_label,
                                         ble_color,
-                                        LV_PART_MAIN);
+                                        0);
         break;
     }
 
