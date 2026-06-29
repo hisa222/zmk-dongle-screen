@@ -24,13 +24,13 @@ struct layer_status_state
 };
 
 static const uint32_t layer_colors[] = {
-    0xA3FF7F, // Layer 0
-    0xFFFFFF, // Layer 1
-    0xFFFFFF, // Layer 2
+    0x8CFFDE, // Layer 0
+    0xA3FF7F, // Layer 1
+    0x7FE3FF, // Layer 2
     0xFFFFFF, // Layer 3
-    0xA3FF7F, // Layer 4
-    0xFFFFFF, // Layer 5
-    0xFFFFFF, // Layer 6
+    0x8CFFDE, // Layer 4
+    0xA3FF7F, // Layer 5
+    0x7FE3FF, // Layer 6
     0xFFFFFF, // Layer 7
     0xFFFB8C, // Layer 8
     0xFF9B7F, // Layer 9
