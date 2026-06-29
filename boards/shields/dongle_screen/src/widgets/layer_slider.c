@@ -185,8 +185,8 @@ static void anim_ready_cb(lv_anim_t *a)
 
     /* 現在ラベルのフォントを強調（大）に戻す */
     lv_obj_set_style_text_font(rt->label_cur,  &lv_font_montserrat_40, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_28, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_20, LV_PART_MAIN);
 
     rt->anim_running = false;
 }
@@ -316,7 +316,7 @@ int zmk_widget_layer_slider_init(struct zmk_widget_layer_slider *widget, lv_obj_
     lv_obj_set_size(rt->label_prev, ITEM_W, WIDGET_H);
     lv_obj_set_pos(rt->label_prev, X_PREV + ITEM_W, 0); /* track 内の相対座標 */
     lv_obj_set_style_text_align(rt->label_prev, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_20, LV_PART_MAIN);
     lv_obj_set_style_text_color(rt->label_prev,
                                 lv_palette_darken(LV_PALETTE_GREY, 2), LV_PART_MAIN);
 
@@ -335,7 +335,7 @@ int zmk_widget_layer_slider_init(struct zmk_widget_layer_slider *widget, lv_obj_
     lv_obj_set_size(rt->label_next, ITEM_W, WIDGET_H);
     lv_obj_set_pos(rt->label_next, X_NEXT + ITEM_W, 0);
     lv_obj_set_style_text_align(rt->label_next, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_20, LV_PART_MAIN);
     lv_obj_set_style_text_color(rt->label_next,
                                 lv_palette_darken(LV_PALETTE_GREY, 2), LV_PART_MAIN);
 
