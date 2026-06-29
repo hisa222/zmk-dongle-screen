@@ -42,28 +42,28 @@ static void set_wpm(struct zmk_widget_wpm_status *widget,
         lv_obj_set_style_text_color(
             widget->wpm_label,
             lv_color_hex(0xFFFFFF),
-            LV_PART_MAIN);
+            0);
     }
     else if (state.wpm < 30)
     {
         lv_obj_set_style_text_color(
             widget->wpm_label,
             lv_color_hex(0x8CFFDE),
-            LV_PART_MAIN);
+            0);
     }
     else if (state.wpm < 70)
     {
         lv_obj_set_style_text_color(
             widget->wpm_label,
             lv_color_hex(0xFFD54F),
-            LV_PART_MAIN);
+            0);
     }
     else
     {
         lv_obj_set_style_text_color(
             widget->wpm_label,
             lv_color_hex(0xFF6B6B),
-            LV_PART_MAIN);
+            0);
     }
 }
 
