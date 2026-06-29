@@ -78,7 +78,7 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
              LV_SYMBOL_USB);
 
             lv_obj_set_style_text_color(widget->transport_label,
-                                        usb_color,
+                                        lv_color_hex(usb_color),
                                         0);
         break;
 
@@ -90,7 +90,7 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
              state.active_profile_index + 1);
 
             lv_obj_set_style_text_color(widget->transport_label,
-                                        ble_color,
+                                        lv_color_hex(ble_color),
                                         0);
         break;
     }
