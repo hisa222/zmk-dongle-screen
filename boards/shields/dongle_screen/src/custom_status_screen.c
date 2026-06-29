@@ -187,14 +187,14 @@ static lv_obj_t *create_main_screen(void)
 #endif
 
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
-    zmk_widget_layer_status_init(&layer_status_widget, screen);
-    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
+//    zmk_widget_layer_status_init(&layer_status_widget, screen);
+//    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_MID, 0, 50);
 
     /* 横スクロールレイヤーウィジェット */
     zmk_widget_layer_slider_init(&layer_slider_widget, screen);
     lv_obj_align(zmk_widget_layer_slider_obj(&layer_slider_widget),
-                 LV_ALIGN_TOP_MID, 0, 95);
+                 LV_ALIGN_TOP_MID, 0, 50);
 #endif
     
 /*
@@ -229,14 +229,14 @@ static lv_obj_t *create_main_screen(void)
 #endif
 
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
-    zmk_widget_layer_status_init(&layer_status_widget, screen);
-    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
+//    zmk_widget_layer_status_init(&layer_status_widget, screen);
+//    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_CENTER, 0, 40);
 
     /* 横スクロールレイヤーウィジェット */
     zmk_widget_layer_slider_init(&layer_slider_widget, screen);
     lv_obj_align(zmk_widget_layer_slider_obj(&layer_slider_widget),
-                 LV_ALIGN_CENTER, 0, 85);
+                 LV_ALIGN_CENTER, 0, 40);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
