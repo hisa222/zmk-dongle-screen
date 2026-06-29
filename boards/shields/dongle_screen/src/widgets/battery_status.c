@@ -101,9 +101,9 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     } else if (state.level <= 50) {
         color = lv_palette_main(LV_PALETTE_YELLOW);
     } else if (state.level <= 80) {
-        color = lv_palette_main(LV_PALETTE_GREEN);
-    } else {
         color = lv_color_white();
+    } else {
+        color = lv_palette_main(LV_PALETTE_GREEN);
     }
 
     lv_obj_set_style_text_color(label, color, 0);
