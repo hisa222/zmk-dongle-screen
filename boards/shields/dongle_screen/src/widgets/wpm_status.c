@@ -30,12 +30,41 @@ static struct wpm_status_state get_state(const zmk_event_t *_eh)
         .wpm = ev ? ev->state : 0};
 }
 
-static void set_wpm(struct zmk_widget_wpm_status *widget, struct wpm_status_state state)
+static void set_wpm(struct zmk_widget_wpm_status *widget,
+                    struct wpm_status_state state)
 {
-
     char wpm_text[12];
     snprintf(wpm_text, sizeof(wpm_text), "WPM: %i", state.wpm);
     lv_label_set_text(widget->wpm_label, wpm_text);
+
+    if (state.wpm < 5)
+    {
+        lv_obj_set_style_text_color(
+            widget->wpm_label,
+            lv_color_hex(0xFFFFFF),
+            LV_PART_MAIN);
+    }
+    else if (state.wpm < 30)
+    {
+        lv_obj_set_style_text_color(
+            widget->wpm_label,
+            lv_color_hex(0x8CFFDE),
+            LV_PART_MAIN);
+    }
+    else if (state.wpm < 70)
+    {
+        lv_obj_set_style_text_color(
+            widget->wpm_label,
+            lv_color_hex(0xFFD54F),
+            LV_PART_MAIN);
+    }
+    else
+    {
+        lv_obj_set_style_text_color(
+            widget->wpm_label,
+            lv_color_hex(0xFF6B6B),
+            LV_PART_MAIN);
+    }
 }
 
 static void wpm_status_update_cb(struct wpm_status_state state)
