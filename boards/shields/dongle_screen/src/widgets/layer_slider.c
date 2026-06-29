@@ -12,7 +12,7 @@
  * 動作概要
  * ─────────────────────────────────────────────────────────────
  *  ・lv_roller は縦方向専用のため、横スクロールには lv_label + lv_anim を使う。
- *  ・外枠コンテナ（obj）に LV_OBJ_FLAG_OVERFLOW_HIDDEN を設定し、
+ *  ・外枠コンテナ（obj）は LVGL8 のデフォルト（子をクリップ）を利用し、
  *    内部のラベルがはみ出さないようにする。
  *  ・内部に「前レイヤー」「現在レイヤー」「次レイヤー」の3つのラベルを横並びに配置。
  *  ・レイヤー変更時に lv_anim で x 座標を動かし、目的のラベルがセンターに来るようにする。
@@ -185,8 +185,8 @@ static void anim_ready_cb(lv_anim_t *a)
 
     /* 現在ラベルのフォントを強調（大）に戻す */
     lv_obj_set_style_text_font(rt->label_cur,  &lv_font_montserrat_40, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_20, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_28, LV_PART_MAIN);
 
     rt->anim_running = false;
 }
@@ -282,8 +282,12 @@ int zmk_widget_layer_slider_init(struct zmk_widget_layer_slider *widget, lv_obj_
     lv_obj_set_style_border_width(widget->obj, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(widget->obj, 0, LV_PART_MAIN);
     lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_SCROLLABLE);
-    /* クリッピング：コンテナ外にはみ出た子を非表示 */
-    lv_obj_add_flag(widget->obj, LV_OBJ_FLAG_OVERFLOW_HIDDEN);
+    /*
+     * LVGL8 のデフォルトは子をクリップする（overflow hidden 相当）。
+     * LV_OBJ_FLAG_OVERFLOW_VISIBLE を付けなければ自動的にクリップされる。
+     * 念のため OVERFLOW_VISIBLE が付いている場合は明示的に外す。
+     */
+    lv_obj_clear_flag(widget->obj, LV_OBJ_FLAG_OVERFLOW_VISIBLE);
 
     /* ── track コンテナ（3ラベルを乗せる横長プレート） ── */
     /*
@@ -312,7 +316,7 @@ int zmk_widget_layer_slider_init(struct zmk_widget_layer_slider *widget, lv_obj_
     lv_obj_set_size(rt->label_prev, ITEM_W, WIDGET_H);
     lv_obj_set_pos(rt->label_prev, X_PREV + ITEM_W, 0); /* track 内の相対座標 */
     lv_obj_set_style_text_align(rt->label_prev, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_prev, &lv_font_montserrat_28, LV_PART_MAIN);
     lv_obj_set_style_text_color(rt->label_prev,
                                 lv_palette_darken(LV_PALETTE_GREY, 2), LV_PART_MAIN);
 
@@ -331,7 +335,7 @@ int zmk_widget_layer_slider_init(struct zmk_widget_layer_slider *widget, lv_obj_
     lv_obj_set_size(rt->label_next, ITEM_W, WIDGET_H);
     lv_obj_set_pos(rt->label_next, X_NEXT + ITEM_W, 0);
     lv_obj_set_style_text_align(rt->label_next, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_set_style_text_font(rt->label_next, &lv_font_montserrat_28, LV_PART_MAIN);
     lv_obj_set_style_text_color(rt->label_next,
                                 lv_palette_darken(LV_PALETTE_GREY, 2), LV_PART_MAIN);
 
