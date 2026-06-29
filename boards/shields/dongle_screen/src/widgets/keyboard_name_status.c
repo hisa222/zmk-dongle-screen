@@ -24,7 +24,7 @@ int zmk_widget_keyboard_name_status_init(struct zmk_widget_keyboard_name_status 
 
 // lv_color_hsv_t c_hsv = lv_color_rgb_to_hsv(r, g, b);
 //    lv_obj_set_style_text_color(widget->obj, lv_color_hex(0x0000FF), 0);
-    lv_obj_set_style_text_color(widget->obj, lv_color_rgb_to_hsv(140, 255, 222), 0);
+    lv_obj_set_style_text_color(widget->obj, lv_color_rgb(140, 255, 222), 0);
 
     return 0;
 }
