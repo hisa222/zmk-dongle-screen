@@ -70,23 +70,32 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
         ble_color = "ffffff";
     }
 
-    switch (state.selected_endpoint.transport)
-      {
+    switch (state.selected_endpoint.transport) {
         case ZMK_TRANSPORT_USB:
-          snprintf(transport_text,
+            snprintf(transport_text,
              sizeof(transport_text),
-             "#%s USB#",
-             usb_color);
+             "%s USB",
+             LV_SYMBOL_USB);
+
+            lv_obj_set_style_text_color(widget->transport_label,
+                                        usb_color,
+                                        LV_PART_MAIN);
         break;
 
         case ZMK_TRANSPORT_BLE:
-          snprintf(transport_text,
-            sizeof(transport_text),
-            "#%s BLE %d#",
-             ble_color,
+            snprintf(transport_text,
+             sizeof(transport_text),
+             "%s BLE %d",
+             LV_SYMBOL_BLUETOOTH,
              state.active_profile_index + 1);
+
+            lv_obj_set_style_text_color(widget->transport_label,
+                                        ble_color,
+                                        LV_PART_MAIN);
         break;
-      }
+    }
+
+lv_label_set_text(widget->transport_label, transport_text);
 
     lv_label_set_recolor(widget->transport_label, true);
     lv_obj_set_style_text_align(widget->transport_label,
