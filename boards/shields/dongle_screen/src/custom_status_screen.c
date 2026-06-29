@@ -222,13 +222,13 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
     zmk_widget_layer_status_init(&layer_status_widget, screen);
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
-                 LV_ALIGN_CENTER, 0, 20);
+                 LV_ALIGN_CENTER, 0, 50);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
     zmk_widget_mod_status_init(&mod_widget, screen);
     lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
-                 LV_ALIGN_CENTER, 0, 65);
+                 LV_ALIGN_CENTER, 0, 95);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
