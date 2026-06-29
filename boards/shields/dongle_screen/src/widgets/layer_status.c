@@ -23,6 +23,21 @@ struct layer_status_state
     const char *label;
 };
 
+static const uint32_t layer_colors[] = {
+    0xA3FF7F, // Layer 0
+    0xFFFFFF, // Layer 1
+    0xFFFFFF, // Layer 2
+    0xFFFFFF, // Layer 3
+    0xA3FF7F, // Layer 4
+    0xFFFFFF, // Layer 5
+    0xFFFFFF, // Layer 6
+    0xFFFFFF, // Layer 7
+    0xFFFB8C, // Layer 8
+    0xFF9B7F, // Layer 9
+    0xDE8CFF, // Layer 10
+    0xFF0000, // Layer 11
+};
+
 static void set_layer_symbol(lv_obj_t *label, struct layer_status_state state)
 {
     if (state.label == NULL)
@@ -40,6 +55,14 @@ static void set_layer_symbol(lv_obj_t *label, struct layer_status_state state)
         snprintf(text, sizeof(text), "%s", state.label);
 
         lv_label_set_text(label, text);
+    }
+
+    if (state.index < ARRAY_SIZE(layer_colors))
+    {
+        lv_obj_set_style_text_color(
+            label,
+            lv_color_hex(layer_colors[state.index]),
+            LV_PART_MAIN);
     }
 }
 
