@@ -233,12 +233,14 @@ int zmk_widget_layer_slider_init(struct zmk_widget_layer_slider *widget, lv_obj_
     lv_obj_set_pos(rt->label_a, 0, 0);
     lv_obj_set_style_text_align(rt->label_a, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(rt->label_a, &lv_font_montserrat_40, LV_PART_MAIN);
+    lv_label_set_long_mode(rt->label_a, LV_LABEL_LONG_CLIP);
 
     rt->label_b = lv_label_create(widget->obj);
     lv_obj_set_size(rt->label_b, WIDGET_W, WIDGET_H);
     lv_obj_set_pos(rt->label_b, WIDGET_W * 2, 0); /* 初期は画面外 */
     lv_obj_set_style_text_align(rt->label_b, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_font(rt->label_b, &lv_font_montserrat_40, LV_PART_MAIN);
+    lv_label_set_long_mode(rt->label_b, LV_LABEL_LONG_CLIP);
     lv_obj_add_flag(rt->label_b, LV_OBJ_FLAG_HIDDEN);
 
     /* ── ポインタ初期化 ── */
