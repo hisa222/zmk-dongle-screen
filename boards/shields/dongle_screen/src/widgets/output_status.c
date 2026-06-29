@@ -50,24 +50,24 @@ static void set_status_symbol(struct zmk_widget_output_status *widget, struct ou
     char transport_text[50] = {};
     if (state.usb_is_hid_ready == 0)
     {
-        usb_color = "ff0000";
+        usb_color = "0xff0000";
     }
     else
     {
-        usb_color = "ffffff";
+        usb_color = "0xffffff";
     }
 
     if (state.active_profile_connected == 1)
     {
-        ble_color = "00ff00";
+        ble_color = "0x00ff00";
     }
     else if (state.active_profile_bonded == 1)
     {
-        ble_color = "0000ff";
+        ble_color = "0x0000ff";
     }
     else
     {
-        ble_color = "ffffff";
+        ble_color = "0xffffff";
     }
 
     switch (state.selected_endpoint.transport) {
