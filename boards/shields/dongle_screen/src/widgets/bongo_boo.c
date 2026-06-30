@@ -40,7 +40,7 @@ LV_IMG_DECLARE(bongo_boo_both2);
 LV_IMG_DECLARE(bongo_boo_both3);
 
 #define ANIMATION_SPEED_IDLE 10000
-const lv_img_dsc_t *idle_imgs[] = {
+const lv_img_dsc_t *idle_imgs_b[] = {
     &bongo_boo_both1_open,
     &bongo_boo_both1_open,
     &bongo_boo_both1_open,
@@ -52,7 +52,7 @@ const lv_img_dsc_t *idle_imgs[] = {
 };
 
 #define ANIMATION_SPEED_SLOW 2000
-const lv_img_dsc_t *slow_imgs[] = {
+const lv_img_dsc_t *slow_imgs_b[] = {
     &bongo_boo_left1,
     &bongo_boo_both1,
     &bongo_boo_both1,
@@ -72,7 +72,7 @@ const lv_img_dsc_t *slow_imgs[] = {
 };
 
 #define ANIMATION_SPEED_MID 500
-const lv_img_dsc_t *mid_imgs[] = {
+const lv_img_dsc_t *mid_imgs_b[] = {
     &bongo_boo_left2,
     &bongo_boo_left1,
     &bongo_boo_none1,
@@ -90,7 +90,7 @@ const lv_img_dsc_t *mid_imgs[] = {
 };
 
 #define ANIMATION_SPEED_FAST 200
-const lv_img_dsc_t *fast_imgs[] = {
+const lv_img_dsc_t *fast_imgs_b[] = {
     &bongo_boo_both2,
     &bongo_boo_both1,
     &bongo_boo_none1,
@@ -123,7 +123,7 @@ static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state s
 
     if (state.wpm < 5) {
         if (current_anim_state != anim_state_idle) {
-            lv_animimg_set_src(animing, SRC(idle_imgs));
+            lv_animimg_set_src(animing, SRC(idle_imgs_b));
             lv_animimg_set_duration(animing, ANIMATION_SPEED_IDLE);
             lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
             lv_animimg_start(animing);
@@ -131,7 +131,7 @@ static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state s
         }
     } else if (state.wpm < 30) {
         if (current_anim_state != anim_state_slow) {
-            lv_animimg_set_src(animing, SRC(slow_imgs));
+            lv_animimg_set_src(animing, SRC(slow_imgs_b));
             lv_animimg_set_duration(animing, ANIMATION_SPEED_SLOW);
             lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
             lv_animimg_start(animing);
@@ -139,7 +139,7 @@ static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state s
         }
     } else if (state.wpm < 70) {
         if (current_anim_state != anim_state_mid) {
-            lv_animimg_set_src(animing, SRC(mid_imgs));
+            lv_animimg_set_src(animing, SRC(mid_imgs_b));
             lv_animimg_set_duration(animing, ANIMATION_SPEED_MID);
             lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
             lv_animimg_start(animing);
@@ -147,7 +147,7 @@ static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state s
         }
     } else {
         if (current_anim_state != anim_state_fast) {
-            lv_animimg_set_src(animing, SRC(fast_imgs));
+            lv_animimg_set_src(animing, SRC(fast_imgs_b));
             lv_animimg_set_duration(animing, ANIMATION_SPEED_FAST);
             lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
             lv_animimg_start(animing);
@@ -182,7 +182,7 @@ sys_slist_append(&widgets, &widget->node);
 widget_bongo_boo_init();
 
 /* 追加 */
-lv_animimg_set_src(widget->obj, SRC(idle_imgs));
+lv_animimg_set_src(widget->obj, SRC(idle_imgs_b));
 lv_animimg_start(widget->obj);
 
 lv_obj_t *img = lv_obj_get_child(widget->obj, 0);
