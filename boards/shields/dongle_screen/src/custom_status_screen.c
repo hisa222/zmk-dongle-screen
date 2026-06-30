@@ -58,18 +58,16 @@ static struct zmk_widget_mod_status mod_widget;
 static struct zmk_widget_keyboard_name_status keyboard_name_status_widget;
 #endif
 
-#include "widgets/bongo_cat.h"
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+#include "widgets/bongo_cat.h"
 static struct zmk_widget_bongo_cat main_bongo_cat_widget;
 #endif
 
-/*
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-static struct zmk_widget_bongo_cat main_bongo_cat_widget;
-#else
-static struct zmk_widget_bongo_cat bongo_screen_widget;
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
+#include "widgets/bongo_boo.h"
+static struct zmk_widget_bongo_boo main_bongo_boo_widget;
 #endif
-*/
+
 static struct zmk_widget_brightness_screen brightness_widget;
 static struct zmk_widget_system_settings system_settings_widget;
 
@@ -92,29 +90,8 @@ volatile bool ui_interaction_active = false;
 /* ================================================================== */
 /* Screen management                                                  */
 /* ================================================================== */
-/*
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-#define SCREEN_COUNT 3
-#else
-#define SCREEN_COUNT 4
-#endif
-*/
 
 #define SCREEN_COUNT 3
-
-/*
-enum dongle_screen_id {
-    SCREEN_MAIN = 0,
-#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-    SCREEN_BONGO = 1,
-    SCREEN_BRIGHTNESS = 2,
-    SCREEN_SYSTEM_SETTINGS = 3,
-#else
-    SCREEN_BRIGHTNESS = 1,
-    SCREEN_SYSTEM_SETTINGS = 2,
-#endif
-};
-*/
 
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
@@ -166,7 +143,7 @@ static lv_obj_t *create_main_screen(void)
 {
     lv_obj_t *screen = make_screen();
 
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
@@ -204,9 +181,17 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_TOP_MID, 0, 85);
 #endif
 */
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
     zmk_widget_bongo_cat_init(&main_bongo_cat_widget, screen);
     lv_obj_align(zmk_widget_bongo_cat_obj(&main_bongo_cat_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
+#endif
+
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
+    zmk_widget_bongo_boo_init(&main_bongo_boo_widget, screen);
+    lv_obj_align(zmk_widget_bongo_boo_obj(&main_bongo_boo_widget),
+                 LV_ALIGN_BOTTOM_MID, 0, 0);
+#endif
 
 #else
 
@@ -257,23 +242,6 @@ static lv_obj_t *create_main_screen(void)
     return screen;
 }
 
-/* ================================================================== */
-/* Bongo-only screen                                                  */
-/* ================================================================== */
-/*
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-static lv_obj_t *create_bongo_screen(void)
-{
-    lv_obj_t *screen = make_screen();
-
-    zmk_widget_bongo_cat_init(&bongo_screen_widget, screen);
-    lv_obj_align(zmk_widget_bongo_cat_obj(&bongo_screen_widget),
-                 LV_ALIGN_BOTTOM_MID, 0, 0);
-
-    return screen;
-}
-#endif
-*/
 /* ================================================================== */
 /* Brightness screen                                                  */
 /* ================================================================== */
@@ -340,37 +308,7 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh)
     }
 
     int next = current_screen_index;
-/*
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-    switch (ev->direction) {
-    case SWIPE_DIRECTION_LEFT:
-        next = (current_screen_index + 1) % SCREEN_COUNT;
-        break;
-    case SWIPE_DIRECTION_RIGHT:
-        next = (current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
-        break;
-    case SWIPE_DIRECTION_DOUBLE_TAP:
-        next = SCREEN_MAIN;
-        break;
-    default:
-        return ZMK_EV_EVENT_BUBBLE;
-    }
-#else
-    switch (ev->direction) {
-    case SWIPE_DIRECTION_LEFT:
-        next = (current_screen_index + 1) % SCREEN_COUNT;
-        break;
-    case SWIPE_DIRECTION_RIGHT:
-        next = (current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
-        break;
-    case SWIPE_DIRECTION_DOUBLE_TAP:
-        next = SCREEN_MAIN;
-        break;
-    default:
-        return ZMK_EV_EVENT_BUBBLE;
-    }
-#endif
-*/
+
     switch (ev->direction) {
     case SWIPE_DIRECTION_LEFT:
         next = (current_screen_index + 1) % SCREEN_COUNT;
@@ -409,18 +347,6 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
     screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
     
-/*
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-    screens[SCREEN_MAIN] = create_main_screen();
-    screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
-    screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
-#else
-    screens[SCREEN_MAIN] = create_main_screen();
-    screens[SCREEN_BONGO] = create_bongo_screen();
-    screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
-    screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
-#endif
-*/
     ensure_lvgl_indev_registered();
 
     current_screen_index = SCREEN_MAIN;
