@@ -79,14 +79,12 @@ const lv_img_dsc_t *mid_imgs_b[] = {
     &bongo_boo_right2,
     &bongo_boo_right1,
     &bongo_boo_none1,
-    &bongo_boo_none2,
     &bongo_boo_left4,
     &bongo_boo_left3,
     &bongo_boo_none2,
     &bongo_boo_right4,
     &bongo_boo_right3,
     &bongo_boo_none2,
-    &bongo_boo_none1,
 };
 
 #define ANIMATION_SPEED_FAST 200
@@ -94,11 +92,9 @@ const lv_img_dsc_t *fast_imgs_b[] = {
     &bongo_boo_both2,
     &bongo_boo_both1,
     &bongo_boo_none1,
-    &bongo_boo_none2,
     &bongo_boo_both3,
     &bongo_boo_both1_open,
     &bongo_boo_none2,
-    &bongo_boo_none1,
 };
 
 struct bongo_boo_wpm_status_state {
