@@ -23,6 +23,7 @@
 #include "display_settings.h"
 #include "widgets/brightness_screen.h"
 #include "widgets/system_settings_widget.h"
+#include "widgets/media_control_widget.h"
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
 #include "widgets/output_status.h"
@@ -70,6 +71,7 @@ static struct zmk_widget_bongo_boo main_bongo_boo_widget;
 
 static struct zmk_widget_brightness_screen brightness_widget;
 static struct zmk_widget_system_settings system_settings_widget;
+static struct zmk_widget_media_control media_control_widget;
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -91,12 +93,13 @@ volatile bool ui_interaction_active = false;
 /* Screen management                                                  */
 /* ================================================================== */
 
-#define SCREEN_COUNT 3
+#define SCREEN_COUNT 4
 
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
     SCREEN_BRIGHTNESS = 1,
     SCREEN_SYSTEM_SETTINGS = 2,
+    SCREEN_MEDIA_CONTROL = 3,
 };
 
 static lv_obj_t *screens[SCREEN_COUNT];
@@ -265,6 +268,17 @@ static lv_obj_t *create_system_settings_screen(void)
 }
 
 /* ================================================================== */
+/* Media control screen                                             */
+/* ================================================================== */
+
+static lv_obj_t *create_media_control_screen(void)
+{
+    lv_obj_t *screen = make_screen();
+    zmk_widget_media_control_init(&media_control_widget, screen);
+    return screen;
+}
+
+/* ================================================================== */
 /* Screen transition helpers                                          */
 /* ================================================================== */
 
@@ -346,6 +360,7 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[SCREEN_MAIN] = create_main_screen();
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
     screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
+    screens[SCREEN_MEDIA_CONTROL] = create_media_control_screen();
     
     ensure_lvgl_indev_registered();
 
