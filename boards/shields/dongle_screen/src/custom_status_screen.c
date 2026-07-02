@@ -93,7 +93,7 @@ volatile bool ui_interaction_active = false;
 /* Screen management                                                  */
 /* ================================================================== */
 
-#define SCREEN_COUNT 3
+#define SCREEN_COUNT 4
 
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
@@ -360,7 +360,7 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[SCREEN_MAIN] = create_main_screen();
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
     screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
-    // screens[SCREEN_MEDIA_CONTROL] = create_media_control_screen();
+    screens[SCREEN_MEDIA_CONTROL] = create_media_control_screen();
     
     ensure_lvgl_indev_registered();
 
