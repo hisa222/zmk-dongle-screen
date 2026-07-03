@@ -15,7 +15,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/wpm_state_changed.h>
 #include <zmk/wpm.h>
 
-#include "bongo_boo.h"
+#include "bongo_spheal.h"
 
 #define SRC(array) (const void **)array, sizeof(array) / sizeof(lv_img_dsc_t *)
 
@@ -23,81 +23,70 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static int64_t last_anim_update_time = 0;
 #define ANIM_UPDATE_INTERVAL_MS 200  // Throttle: max 5 animation checks per second
 
-LV_IMG_DECLARE(bongo_boo_none1);
-LV_IMG_DECLARE(bongo_boo_none2);
-LV_IMG_DECLARE(bongo_boo_none3);
-LV_IMG_DECLARE(bongo_boo_left1);
-LV_IMG_DECLARE(bongo_boo_left2);
-LV_IMG_DECLARE(bongo_boo_left3);
-LV_IMG_DECLARE(bongo_boo_left4);
-LV_IMG_DECLARE(bongo_boo_right1);
-LV_IMG_DECLARE(bongo_boo_right2);
-LV_IMG_DECLARE(bongo_boo_right3);
-LV_IMG_DECLARE(bongo_boo_right4);
-LV_IMG_DECLARE(bongo_boo_both1);
-LV_IMG_DECLARE(bongo_boo_both1_open);
-LV_IMG_DECLARE(bongo_boo_both2);
-LV_IMG_DECLARE(bongo_boo_both3);
+LV_IMG_DECLARE(bongo_spheal_none);
+LV_IMG_DECLARE(bongo_spheal_left1);
+LV_IMG_DECLARE(bongo_spheal_left2);
+LV_IMG_DECLARE(bongo_spheal_left3);
+LV_IMG_DECLARE(bongo_spheal_right1);
+LV_IMG_DECLARE(bongo_spheal_right2);
+LV_IMG_DECLARE(bongo_spheal_right3);
+LV_IMG_DECLARE(bongo_spheal_both1);
+LV_IMG_DECLARE(bongo_spheal_both1_open);
+LV_IMG_DECLARE(bongo_spheal_both2);
 
 #define ANIMATION_SPEED_IDLE 10000
 const lv_img_dsc_t *idle_imgs_b[] = {
-    &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
-    &bongo_boo_none3,
-    &bongo_boo_none3,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_none,
+    &bongo_spheal_none,
 };
 
 #define ANIMATION_SPEED_SLOW 2000
 const lv_img_dsc_t *slow_imgs_b[] = {
-    &bongo_boo_left1,
-    &bongo_boo_both1,
-    &bongo_boo_both1,
-    &bongo_boo_right1,
-    &bongo_boo_both1,
-    &bongo_boo_both1,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
-    &bongo_boo_left1,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
-    &bongo_boo_right1,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
-    &bongo_boo_both1,
-    &bongo_boo_both1,
+    &bongo_spheal_left1,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1,
+    &bongo_spheal_right1,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_left1,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_right1,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1,
 };
 
 #define ANIMATION_SPEED_MID 500
 const lv_img_dsc_t *mid_imgs_b[] = {
-    &bongo_boo_left2,
-    &bongo_boo_left1,
-    &bongo_boo_none1,
-    &bongo_boo_right2,
-    &bongo_boo_right1,
-    &bongo_boo_none1,
-    &bongo_boo_left4,
-    &bongo_boo_left3,
-    &bongo_boo_none2,
-    &bongo_boo_right4,
-    &bongo_boo_right3,
-    &bongo_boo_none2,
+    &bongo_spheal_left2,
+    &bongo_spheal_left3,
+    &bongo_spheal_both1,
+    &bongo_spheal_right2,
+    &bongo_spheal_right3,
+    &bongo_spheal_both1,
 };
 
 #define ANIMATION_SPEED_FAST 200
 const lv_img_dsc_t *fast_imgs_b[] = {
-    &bongo_boo_both2,
-    &bongo_boo_both1,
-    &bongo_boo_none1,
-    &bongo_boo_both3,
-    &bongo_boo_both1_open,
-    &bongo_boo_none2,
+    &bongo_spheal_both2,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1_open,
+    &bongo_spheal_both2,
+    &bongo_spheal_both1,
+    &bongo_spheal_both1_open,
 };
 
-struct bongo_boo_wpm_status_state {
+struct bongo_spheal_wpm_status_state {
     uint8_t wpm;
 };
 
@@ -109,7 +98,7 @@ enum anim_state {
     anim_state_fast
 } current_anim_state_b;
 
-static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state state) {
+static void set_animation(lv_obj_t *animing, struct bongo_spheal_wpm_status_state state) {
     // Throttle animation state changes to prevent display thread flooding
     int64_t now = k_uptime_get();
     if ((now - last_anim_update_time) < ANIM_UPDATE_INTERVAL_MS) {
@@ -152,30 +141,30 @@ static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state s
     }
 }
 
-struct bongo_boo_wpm_status_state bongo_boo_wpm_status_get_state(const zmk_event_t *eh) {
+struct bongo_spheal_wpm_status_state bongo_spheal_wpm_status_get_state(const zmk_event_t *eh) {
     struct zmk_wpm_state_changed *ev = as_zmk_wpm_state_changed(eh);
     // Add NULL check to prevent crash if event is NULL
-    return (struct bongo_boo_wpm_status_state) { .wpm = ev ? ev->state : 0 };
+    return (struct bongo_spheal_wpm_status_state) { .wpm = ev ? ev->state : 0 };
 };
 
-void bongo_boo_wpm_status_update_cb(struct bongo_boo_wpm_status_state state) {
-    struct zmk_widget_bongo_boo *widget;
+void bongo_spheal_wpm_status_update_cb(struct bongo_spheal_wpm_status_state state) {
+    struct zmk_widget_bongo_spheal *widget;
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_animation(widget->obj, state); }
 }
 
-ZMK_DISPLAY_WIDGET_LISTENER(widget_bongo_boo, struct bongo_boo_wpm_status_state,
-                            bongo_boo_wpm_status_update_cb, bongo_boo_wpm_status_get_state)
+ZMK_DISPLAY_WIDGET_LISTENER(widget_bongo_spheal, struct bongo_spheal_wpm_status_state,
+                            bongo_spheal_wpm_status_update_cb, bongo_spheal_wpm_status_get_state)
 
-ZMK_SUBSCRIPTION(widget_bongo_boo, zmk_wpm_state_changed);
+ZMK_SUBSCRIPTION(widget_bongo_spheal, zmk_wpm_state_changed);
 
-int zmk_widget_bongo_boo_init(struct zmk_widget_bongo_boo *widget, lv_obj_t *parent) {
+int zmk_widget_bongo_spheal_init(struct zmk_widget_bongo_spheal *widget, lv_obj_t *parent) {
 widget->obj = lv_animimg_create(parent);
 
 lv_obj_center(widget->obj);
 
 sys_slist_append(&widgets, &widget->node);
 
-widget_bongo_boo_init();
+widget_bongo_spheal_init();
 
 /* 追加 */
 lv_animimg_set_src(widget->obj, SRC(idle_imgs_b));
@@ -188,6 +177,6 @@ if (img) {
     return 0;
 }
 
-lv_obj_t *zmk_widget_bongo_boo_obj(struct zmk_widget_bongo_boo *widget) {
+lv_obj_t *zmk_widget_bongo_spheal_obj(struct zmk_widget_bongo_spheal *widget) {
     return widget->obj;
 }
