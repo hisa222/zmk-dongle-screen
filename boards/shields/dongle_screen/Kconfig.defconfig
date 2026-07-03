@@ -192,6 +192,12 @@ config DONGLE_SCREEN_BONGO_BOO_ACTIVE
     help
       If the BongoBoo Widget should be active or not
 
+config DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
+    bool "BongoSpheal Widget active"
+    default n
+    help
+      If the BongoSpheal Widget should be active or not
+
 config DONGLE_SCREEN_AMBIENT_LIGHT
     bool "Enable automatic brightness via ambient light sensor"
     default n
