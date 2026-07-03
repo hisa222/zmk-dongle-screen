@@ -1,0 +1,193 @@
+/*
+ * Copyright (c) 2024 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <zephyr/kernel.h>
+#include <zephyr/bluetooth/services/bas.h>
+
+#include <zephyr/logging/log.h>
+LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
+
+#include <zmk/display.h>
+#include <zmk/event_manager.h>
+#include <zmk/events/wpm_state_changed.h>
+#include <zmk/wpm.h>
+
+#include "bongo_boo.h"
+
+#define SRC(array) (const void **)array, sizeof(array) / sizeof(lv_img_dsc_t *)
+
+static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
+static int64_t last_anim_update_time = 0;
+#define ANIM_UPDATE_INTERVAL_MS 200  // Throttle: max 5 animation checks per second
+
+LV_IMG_DECLARE(bongo_boo_none1);
+LV_IMG_DECLARE(bongo_boo_none2);
+LV_IMG_DECLARE(bongo_boo_none3);
+LV_IMG_DECLARE(bongo_boo_left1);
+LV_IMG_DECLARE(bongo_boo_left2);
+LV_IMG_DECLARE(bongo_boo_left3);
+LV_IMG_DECLARE(bongo_boo_left4);
+LV_IMG_DECLARE(bongo_boo_right1);
+LV_IMG_DECLARE(bongo_boo_right2);
+LV_IMG_DECLARE(bongo_boo_right3);
+LV_IMG_DECLARE(bongo_boo_right4);
+LV_IMG_DECLARE(bongo_boo_both1);
+LV_IMG_DECLARE(bongo_boo_both1_open);
+LV_IMG_DECLARE(bongo_boo_both2);
+LV_IMG_DECLARE(bongo_boo_both3);
+
+#define ANIMATION_SPEED_IDLE 10000
+const lv_img_dsc_t *idle_imgs_b[] = {
+    &bongo_boo_both1_open,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1_open,
+    &bongo_boo_none3,
+    &bongo_boo_none3,
+};
+
+#define ANIMATION_SPEED_SLOW 2000
+const lv_img_dsc_t *slow_imgs_b[] = {
+    &bongo_boo_left1,
+    &bongo_boo_both1,
+    &bongo_boo_both1,
+    &bongo_boo_right1,
+    &bongo_boo_both1,
+    &bongo_boo_both1,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1_open,
+    &bongo_boo_left1,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1_open,
+    &bongo_boo_right1,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1_open,
+    &bongo_boo_both1,
+    &bongo_boo_both1,
+};
+
+#define ANIMATION_SPEED_MID 500
+const lv_img_dsc_t *mid_imgs_b[] = {
+    &bongo_boo_left2,
+    &bongo_boo_left1,
+    &bongo_boo_none1,
+    &bongo_boo_right2,
+    &bongo_boo_right1,
+    &bongo_boo_none1,
+    &bongo_boo_left4,
+    &bongo_boo_left3,
+    &bongo_boo_none2,
+    &bongo_boo_right4,
+    &bongo_boo_right3,
+    &bongo_boo_none2,
+};
+
+#define ANIMATION_SPEED_FAST 200
+const lv_img_dsc_t *fast_imgs_b[] = {
+    &bongo_boo_both2,
+    &bongo_boo_both1,
+    &bongo_boo_none1,
+    &bongo_boo_both3,
+    &bongo_boo_both1_open,
+    &bongo_boo_none2,
+};
+
+struct bongo_boo_wpm_status_state {
+    uint8_t wpm;
+};
+
+enum anim_state {
+    anim_state_none,
+    anim_state_idle,
+    anim_state_slow,
+    anim_state_mid,
+    anim_state_fast
+} current_anim_state_b;
+
+static void set_animation(lv_obj_t *animing, struct bongo_boo_wpm_status_state state) {
+    // Throttle animation state changes to prevent display thread flooding
+    int64_t now = k_uptime_get();
+    if ((now - last_anim_update_time) < ANIM_UPDATE_INTERVAL_MS) {
+        return;
+    }
+    last_anim_update_time = now;
+
+    if (state.wpm < 5) {
+        if (current_anim_state_b != anim_state_idle) {
+            lv_animimg_set_src(animing, SRC(idle_imgs_b));
+            lv_animimg_set_duration(animing, ANIMATION_SPEED_IDLE);
+            lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
+            lv_animimg_start(animing);
+            current_anim_state_b = anim_state_idle;
+        }
+    } else if (state.wpm < 30) {
+        if (current_anim_state_b != anim_state_slow) {
+            lv_animimg_set_src(animing, SRC(slow_imgs_b));
+            lv_animimg_set_duration(animing, ANIMATION_SPEED_SLOW);
+            lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
+            lv_animimg_start(animing);
+            current_anim_state_b = anim_state_slow;
+        }
+    } else if (state.wpm < 70) {
+        if (current_anim_state_b != anim_state_mid) {
+            lv_animimg_set_src(animing, SRC(mid_imgs_b));
+            lv_animimg_set_duration(animing, ANIMATION_SPEED_MID);
+            lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
+            lv_animimg_start(animing);
+            current_anim_state_b = anim_state_mid;
+        }
+    } else {
+        if (current_anim_state_b != anim_state_fast) {
+            lv_animimg_set_src(animing, SRC(fast_imgs_b));
+            lv_animimg_set_duration(animing, ANIMATION_SPEED_FAST);
+            lv_animimg_set_repeat_count(animing, LV_ANIM_REPEAT_INFINITE);
+            lv_animimg_start(animing);
+            current_anim_state_b = anim_state_fast;
+        }
+    }
+}
+
+struct bongo_boo_wpm_status_state bongo_boo_wpm_status_get_state(const zmk_event_t *eh) {
+    struct zmk_wpm_state_changed *ev = as_zmk_wpm_state_changed(eh);
+    // Add NULL check to prevent crash if event is NULL
+    return (struct bongo_boo_wpm_status_state) { .wpm = ev ? ev->state : 0 };
+};
+
+void bongo_boo_wpm_status_update_cb(struct bongo_boo_wpm_status_state state) {
+    struct zmk_widget_bongo_boo *widget;
+    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_animation(widget->obj, state); }
+}
+
+ZMK_DISPLAY_WIDGET_LISTENER(widget_bongo_boo, struct bongo_boo_wpm_status_state,
+                            bongo_boo_wpm_status_update_cb, bongo_boo_wpm_status_get_state)
+
+ZMK_SUBSCRIPTION(widget_bongo_boo, zmk_wpm_state_changed);
+
+int zmk_widget_bongo_boo_init(struct zmk_widget_bongo_boo *widget, lv_obj_t *parent) {
+widget->obj = lv_animimg_create(parent);
+
+lv_obj_center(widget->obj);
+
+sys_slist_append(&widgets, &widget->node);
+
+widget_bongo_boo_init();
+
+/* 追加 */
+lv_animimg_set_src(widget->obj, SRC(idle_imgs_b));
+lv_animimg_start(widget->obj);
+
+lv_obj_t *img = lv_obj_get_child(widget->obj, 0);
+if (img) {
+    lv_img_set_zoom(img, 768); //256 x n
+}
+    return 0;
+}
+
+lv_obj_t *zmk_widget_bongo_boo_obj(struct zmk_widget_bongo_boo *widget) {
+    return widget->obj;
+}
