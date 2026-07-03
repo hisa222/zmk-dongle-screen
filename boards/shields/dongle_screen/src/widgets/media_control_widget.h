@@ -11,6 +11,9 @@
 struct zmk_widget_media_control {
     lv_obj_t *obj;
     lv_obj_t *title_label;
+    lv_obj_t *bri_down_btn;
+    lv_obj_t *prtscn_btn;
+    lv_obj_t *bri_up_btn;
     lv_obj_t *mute_btn;
     lv_obj_t *vol_down_btn;
     lv_obj_t *vol_up_btn;
