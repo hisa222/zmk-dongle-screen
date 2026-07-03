@@ -65,6 +65,9 @@ struct action_btn_bundle {
 static struct action_btn_bundle mute_bundle;
 static struct action_btn_bundle vol_down_bundle;
 static struct action_btn_bundle vol_up_bundle;
+static struct action_btn_bundle bri_down_bundle;
+static struct action_btn_bundle prtscn_bundle;
+static struct action_btn_bundle bri_up_bundle;
 
 /* ================================================================== */
 /* Visual button helper (system_settings_widget.c と同一実装)          */
@@ -145,6 +148,33 @@ static void vol_up_cb(lv_event_t *e)
     send_keycode(C_VOL_UP);
 }
 
+static void bri_down_cb(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
+    ui_interaction_active = false;
+    LOG_INF("Media control: BRI_DOWN");
+    send_keycode(C_BRI_DN);
+}
+
+static void prtscn_cb(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
+    ui_interaction_active = false;
+    LOG_INF("Media control: PRTSCN");
+    send_keycode(PSCRN);
+}
+
+static void bri_up_cb(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
+    ui_interaction_active = false;
+    LOG_INF("Media control: BRI_UP");
+    send_keycode(C_BRI_UP);
+}
+
 /* ================================================================== */
 /* Hitbox helper (system_settings_widget.c と同一実装)                 */
 /* ================================================================== */
@@ -194,27 +224,51 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
     lv_obj_set_style_text_font(widget->title_label, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
+    /* ---- Brightness Down ---- */
+    bri_down_bundle.visual_btn = make_visual_btn(parent, "BRI-",
+        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -75);
+    if (!bri_down_bundle.visual_btn) return -ENOMEM;
+    bri_down_bundle.hitbox = make_center_hitbox(bri_down_bundle.visual_btn, bri_down_cb);
+    if (!bri_down_bundle.hitbox) return -ENOMEM;
+
+    /* ---- Print Screen ---- */
+    prtscn_bundle.visual_btn = make_visual_btn(parent, "PRTSC",
+        lv_color_hex(0xE2A64A), LV_ALIGN_CENTER, 0, -75);
+    if (!prtscn_bundle.visual_btn) return -ENOMEM;
+    prtscn_bundle.hitbox = make_center_hitbox(prtscn_bundle.visual_btn, prtscn_cb);
+    if (!prtscn_bundle.hitbox) return -ENOMEM;
+
+    /* ---- Brightness Up ---- */
+    bri_up_bundle.visual_btn = make_visual_btn(parent, "BRI+",
+        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, -75);
+    if (!bri_up_bundle.visual_btn) return -ENOMEM;
+    bri_up_bundle.hitbox = make_center_hitbox(bri_up_bundle.visual_btn, bri_up_cb);
+    if (!bri_up_bundle.hitbox) return -ENOMEM;
+
     /* ---- Vol Down ---- */
     vol_down_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_VOLUME_MID,
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, 0);
+        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, 5);
     if (!vol_down_bundle.visual_btn) return -ENOMEM;
     vol_down_bundle.hitbox = make_center_hitbox(vol_down_bundle.visual_btn, vol_down_cb);
     if (!vol_down_bundle.hitbox) return -ENOMEM;
 
     /* ---- Mute ---- */
     mute_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_MUTE,
-        lv_color_hex(0xE24A4A), LV_ALIGN_CENTER, 0, 0);
+        lv_color_hex(0xE24A4A), LV_ALIGN_CENTER, 0, 5);
     if (!mute_bundle.visual_btn) return -ENOMEM;
     mute_bundle.hitbox = make_center_hitbox(mute_bundle.visual_btn, mute_cb);
     if (!mute_bundle.hitbox) return -ENOMEM;
 
     /* ---- Vol Up ---- */
     vol_up_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_VOLUME_MAX,
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, 0);
+        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, 5);
     if (!vol_up_bundle.visual_btn) return -ENOMEM;
     vol_up_bundle.hitbox = make_center_hitbox(vol_up_bundle.visual_btn, vol_up_cb);
     if (!vol_up_bundle.hitbox) return -ENOMEM;
 
+    widget->bri_down_btn = bri_down_bundle.visual_btn;
+    widget->prtscn_btn   = prtscn_bundle.visual_btn;
+    widget->bri_up_btn   = bri_up_bundle.visual_btn;
     widget->vol_down_btn = vol_down_bundle.visual_btn;
     widget->mute_btn     = mute_bundle.visual_btn;
     widget->vol_up_btn   = vol_up_bundle.visual_btn;
