@@ -306,6 +306,62 @@ static void activate_screen(int next)
 /* Swipe event listener                                               */
 /* ================================================================== */
 
+/*
+ * 画面遷移マップ（MAIN を中心とした十字形ナビゲーション）:
+ *
+ *   横軸 (LEFT / RIGHT): MAIN <-> MEDIA_CONTROL の2画面ループ。
+ *     SYSTEM_SETTINGS / BRIGHTNESS 上で左右スワイプした場合も、
+ *     MAIN を経由せず直接 MEDIA_CONTROL へ移動する。
+ *
+ *   縦軸 (UP):   MAIN -> SYSTEM_SETTINGS -> BRIGHTNESS -> MAIN … の正順ループ
+ *   縦軸 (DOWN): MAIN -> BRIGHTNESS -> SYSTEM_SETTINGS -> MAIN … の逆順ループ
+ *     MEDIA_CONTROL 上で上下スワイプした場合も、MAIN を経由せず
+ *     直接ループの最初のステップ（UPならSYSTEM_SETTINGS、DOWNならBRIGHTNESS）へ移動する。
+ */
+static int next_screen_for_direction(int current, enum swipe_direction direction)
+{
+    switch (direction) {
+    case SWIPE_DIRECTION_LEFT:
+    case SWIPE_DIRECTION_RIGHT:
+        /* MEDIA_CONTROL からは MAIN へ、それ以外（MAIN含む）からは
+         * MAIN経由せず直接 MEDIA_CONTROL へ。 */
+        if (current == SCREEN_MEDIA_CONTROL) {
+            return SCREEN_MAIN;
+        }
+        return SCREEN_MEDIA_CONTROL;
+
+    case SWIPE_DIRECTION_UP:
+        switch (current) {
+        case SCREEN_MAIN:
+            return SCREEN_SYSTEM_SETTINGS;
+        case SCREEN_SYSTEM_SETTINGS:
+            return SCREEN_BRIGHTNESS;
+        case SCREEN_BRIGHTNESS:
+            return SCREEN_MAIN;
+        default: /* MEDIA_CONTROL: MAIN経由せず正順ループの先頭へ */
+            return SCREEN_SYSTEM_SETTINGS;
+        }
+
+    case SWIPE_DIRECTION_DOWN:
+        switch (current) {
+        case SCREEN_MAIN:
+            return SCREEN_BRIGHTNESS;
+        case SCREEN_BRIGHTNESS:
+            return SCREEN_SYSTEM_SETTINGS;
+        case SCREEN_SYSTEM_SETTINGS:
+            return SCREEN_MAIN;
+        default: /* MEDIA_CONTROL: MAIN経由せず逆順ループの先頭へ */
+            return SCREEN_BRIGHTNESS;
+        }
+
+    case SWIPE_DIRECTION_DOUBLE_TAP:
+        return SCREEN_MAIN;
+
+    default:
+        return current;
+    }
+}
+
 static int swipe_gesture_event_handler(const zmk_event_t *eh)
 {
     const struct zmk_swipe_gesture_event *ev = as_zmk_swipe_gesture_event(eh);
@@ -321,22 +377,7 @@ static int swipe_gesture_event_handler(const zmk_event_t *eh)
         return ZMK_EV_EVENT_BUBBLE;
     }
 
-    int next = current_screen_index;
-
-    switch (ev->direction) {
-    case SWIPE_DIRECTION_LEFT:
-        next = (current_screen_index + 1) % SCREEN_COUNT;
-        break;
-    case SWIPE_DIRECTION_RIGHT:
-        next = (current_screen_index - 1 + SCREEN_COUNT) % SCREEN_COUNT;
-        break;
-    case SWIPE_DIRECTION_DOUBLE_TAP:
-        next = SCREEN_MAIN;
-        break;
-    default:
-        return ZMK_EV_EVENT_BUBBLE;
-    }
-
+    int next = next_screen_for_direction(current_screen_index, ev->direction);
     activate_screen(next);
     return ZMK_EV_EVENT_BUBBLE;
 }
