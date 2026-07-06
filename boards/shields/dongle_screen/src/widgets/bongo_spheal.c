@@ -166,8 +166,8 @@ lv_img_set_zoom(widget->obj, 384);
 lv_obj_set_size(widget->obj, 90 * 1.5, 47 * 1.5);
 lv_obj_center(widget->obj);
 
-// lv_obj_set_style_bg_color(widget->obj, lv_color_hex(0xFF0000), 0);
-// lv_obj_set_style_bg_opa(widget->obj, LV_OPA_COVER, 0);
+lv_obj_set_style_bg_color(widget->obj, lv_color_hex(0xFF0000), 0);
+lv_obj_set_style_bg_opa(widget->obj, LV_OPA_COVER, 0);
     
 lv_animimg_set_duration(widget->obj, ANIMATION_SPEED_IDLE);
 lv_animimg_set_repeat_count(widget->obj, LV_ANIM_REPEAT_INFINITE);
