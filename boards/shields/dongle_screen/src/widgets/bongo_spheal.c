@@ -170,8 +170,10 @@ widget_bongo_spheal_init();
 lv_animimg_set_src(widget->obj, SRC(idle_imgs_s));
 lv_animimg_start(widget->obj);
 
-// lv_img_set_zoom(widget->obj, 768); //256 x n
-lv_img_set_zoom(widget->obj, 256);
+lv_img_set_zoom(widget->obj, 768);
+lv_obj_set_size(widget->obj, 90 * 3, 47 * 3);
+
+lv_obj_center(widget->obj); 
     
     return 0;
 }
