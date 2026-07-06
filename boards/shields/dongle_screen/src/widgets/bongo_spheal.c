@@ -170,10 +170,8 @@ widget_bongo_spheal_init();
 lv_animimg_set_src(widget->obj, SRC(idle_imgs_s));
 lv_animimg_start(widget->obj);
 
-lv_obj_t *img = lv_obj_get_child(widget->obj, 0);
-if (img) {
-    lv_img_set_zoom(img, 768); //256 x n
-}
+lv_img_set_zoom(widget->obj, 768); //256 x n
+
     return 0;
 }
 
