@@ -204,7 +204,7 @@ static lv_obj_t *create_main_screen(void)
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
     zmk_widget_bongo_spheal_init(&main_bongo_spheal_widget, screen);
     lv_obj_align(zmk_widget_bongo_spheal_obj(&main_bongo_spheal_widget),
-                 LV_ALIGN_BOTTOM_MID, 0, 0);
+                 LV_ALIGN_BOTTOM_MID, 0, -6);
 #endif
 
 #else
