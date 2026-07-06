@@ -160,20 +160,17 @@ ZMK_SUBSCRIPTION(widget_bongo_spheal, zmk_wpm_state_changed);
 int zmk_widget_bongo_spheal_init(struct zmk_widget_bongo_spheal *widget, lv_obj_t *parent) {
 widget->obj = lv_animimg_create(parent);
 
-lv_obj_center(widget->obj);
-
-sys_slist_append(&widgets, &widget->node);
-
-widget_bongo_spheal_init();
-
-/* 追加 */
 lv_animimg_set_src(widget->obj, SRC(idle_imgs_s));
-lv_animimg_start(widget->obj);
-
 lv_img_set_zoom(widget->obj, 768);
 lv_obj_set_size(widget->obj, 90 * 3, 47 * 3);
+lv_obj_center(widget->obj);
 
-lv_obj_center(widget->obj); 
+lv_animimg_set_duration(widget->obj, ANIMATION_SPEED_IDLE);
+lv_animimg_set_repeat_count(widget->obj, LV_ANIM_REPEAT_INFINITE);
+lv_animimg_start(widget->obj);
+
+sys_slist_append(&widgets, &widget->node);
+widget_bongo_spheal_init();
     
     return 0;
 }
