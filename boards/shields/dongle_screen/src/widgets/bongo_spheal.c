@@ -162,8 +162,8 @@ widget->obj = lv_animimg_create(parent);
 
 lv_animimg_set_src(widget->obj, SRC(idle_imgs_s));
 // lv_img_set_zoom(widget->obj, 768);
-lv_img_set_zoom(widget->obj, 461); // 256 * n
-lv_obj_set_size(widget->obj, 90 * 1.8, 47 * 1.8);
+lv_img_set_zoom(widget->obj, 435); // 256 * n
+lv_obj_set_size(widget->obj, 90 * 1.7, 47 * 1.7);
 lv_obj_center(widget->obj);
 
 lv_obj_set_style_bg_color(widget->obj, lv_color_hex(0xFF0000), 0);
