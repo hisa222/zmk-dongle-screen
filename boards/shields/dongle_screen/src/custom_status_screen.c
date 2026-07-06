@@ -205,10 +205,10 @@ static lv_obj_t *create_main_screen(void)
     zmk_widget_bongo_spheal_init(&main_bongo_spheal_widget, screen);
     lv_obj_align(zmk_widget_bongo_spheal_obj(&main_bongo_spheal_widget),
 //                 LV_ALIGN_BOTTOM_MID, 0, 0);
-                LV_ALIGN_CENTER, 0, 0);
+                LV_ALIGN_CENTER, -40, 20);
 #endif
 
-#else
+#else //-------------------------------------------------------------------------------------------------------------------
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
