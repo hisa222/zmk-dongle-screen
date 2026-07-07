@@ -43,7 +43,6 @@ LV_IMG_DECLARE(bongo_boo_both3);
 const lv_img_dsc_t *idle_imgs_b[] = {
     &bongo_boo_both1_open,
     &bongo_boo_both1_open,
-    &bongo_boo_both1_open,
     &bongo_boo_both1,
     &bongo_boo_both1_open,
     &bongo_boo_both1_open,
@@ -71,7 +70,7 @@ const lv_img_dsc_t *slow_imgs_b[] = {
     &bongo_boo_both1,
 };
 
-#define ANIMATION_SPEED_MID 500
+#define ANIMATION_SPEED_MID 700
 const lv_img_dsc_t *mid_imgs_b[] = {
     &bongo_boo_left2,
     &bongo_boo_left1,
