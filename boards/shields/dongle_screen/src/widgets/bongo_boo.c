@@ -48,6 +48,7 @@ const lv_img_dsc_t *idle_imgs_b[] = {
     &bongo_boo_both1_open,
     &bongo_boo_none3,
     &bongo_boo_none3,
+    &bongo_boo_none3,
 };
 
 #define ANIMATION_SPEED_SLOW 2000
