@@ -24,6 +24,7 @@
 #include "widgets/brightness_screen.h"
 #include "widgets/system_settings_widget.h"
 #include "widgets/media_control_widget.h"
+#include "widgets/custom_buttons.h"
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
 #include "widgets/output_status.h"
@@ -99,13 +100,14 @@ volatile bool ui_interaction_active = false;
 /* Screen management                                                  */
 /* ================================================================== */
 
-#define SCREEN_COUNT 4
+#define SCREEN_COUNT 5
 
 enum dongle_screen_id {
     SCREEN_MAIN = 0,
     SCREEN_BRIGHTNESS = 1,
     SCREEN_SYSTEM_SETTINGS = 2,
     SCREEN_MEDIA_CONTROL = 3,
+    SCREEN_CUSTOM_BUTTONS = 4,
 };
 
 static lv_obj_t *screens[SCREEN_COUNT];
@@ -280,13 +282,24 @@ static lv_obj_t *create_system_settings_screen(void)
 }
 
 /* ================================================================== */
-/* Media control screen                                             */
+/* Media control screen                                               */
 /* ================================================================== */
 
 static lv_obj_t *create_media_control_screen(void)
 {
     lv_obj_t *screen = make_screen();
     zmk_widget_media_control_init(&media_control_widget, screen);
+    return screen;
+}
+
+/* ================================================================== */
+/* Custom buttons screen                                              */
+/* ================================================================== */
+
+static lv_obj_t *create_custom_buttons_screen(void)
+{
+    lv_obj_t *screen = make_screen();
+    zmk_custom_buttons_init(&custom_buttons, screen);
     return screen;
 }
 
@@ -334,10 +347,23 @@ static int next_screen_for_direction(int current, enum swipe_direction direction
 {
     switch (direction) {
     case SWIPE_DIRECTION_LEFT:
+        /* MEDIA_CONTROL からは MAIN へ、それ以外（MAIN含む）からは
+         * MAIN経由せず直接 MEDIA_CONTROL へ。 */
+        if (current == SCREEN_MEDIA_CONTROL) {
+            return SCREEN_MAIN;
+        }
+        if (current == SCREEN_CUSTOM_BUTTONS) {
+            return SCREEN_MEDIA_CONTROL;
+        }
+        return SCREEN_CUSTOM_BUTTONS;
+        
     case SWIPE_DIRECTION_RIGHT:
         /* MEDIA_CONTROL からは MAIN へ、それ以外（MAIN含む）からは
          * MAIN経由せず直接 MEDIA_CONTROL へ。 */
         if (current == SCREEN_MEDIA_CONTROL) {
+            return SCREEN_CUSTOM_BUTTONS;
+        }
+        if (current == SCREEN_CUSTOM_BUTTONS) {
             return SCREEN_MAIN;
         }
         return SCREEN_MEDIA_CONTROL;
@@ -418,6 +444,7 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
     screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
     screens[SCREEN_MEDIA_CONTROL] = create_media_control_screen();
+    screens[SCREEN_CUSTOM_BUTTONS] = create_custom_buttons_screen();
     
     ensure_lvgl_indev_registered();
 
