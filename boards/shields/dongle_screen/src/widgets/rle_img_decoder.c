@@ -10,12 +10,24 @@
  *                               run_length is 1..255, longer runs are split
  *                               into multiple consecutive pairs.
  *
- * We hook this in via LV_IMG_CF_RAW_ALPHA, which LVGL routes to registered
- * decoders. On open() we fully decode into a heap buffer as
- * LV_IMG_CF_TRUE_COLOR_ALPHA (native color bytes + 1 alpha byte per pixel),
- * which LVGL can then draw directly. The buffer is freed again on close(),
- * so only one decoded frame is ever resident in RAM at a time.
+ * This version decodes ONE SCANLINE AT A TIME via the read_line callback,
+ * instead of allocating a full-frame buffer. RAM usage per open image is:
+ *   - a small per-row lookup table (h * 6 bytes, e.g. 140 rows = 840 B)
+ *   - no full pixel buffer at all (0 B, vs. ~113 KB for the old approach)
+ * This avoids exhausting LVGL's memory pool (LV_MEM_SIZE) on constrained
+ * peripheral boards.
  */
+
+typedef struct {
+    const uint8_t *palette;   /* N * (R,G,B,A) */
+    const uint8_t *rle;       /* RLE stream start */
+    uint32_t rle_len;
+    uint16_t w;
+    uint16_t h;
+    uint8_t num_colors;
+    uint32_t *row_token_offset; /* byte offset into rle[] where each row begins */
+    uint16_t *row_skip;         /* pixels already consumed of that token by earlier rows */
+} rle_decoder_state_t;
 
 static lv_res_t rle_decoder_info(lv_img_decoder_t * decoder, const void * src, lv_img_header_t * header)
 {
@@ -48,51 +60,135 @@ static lv_res_t rle_decoder_open(lv_img_decoder_t * decoder, lv_img_decoder_dsc_
     const uint8_t * palette = &data[1];
     const uint8_t * rle = &data[1 + (uint32_t)num_colors * 4];
     uint32_t rle_len = img_dsc->data_size - (1 + (uint32_t)num_colors * 4);
+    uint16_t w = dsc->header.w;
+    uint16_t h = dsc->header.h;
 
-    uint32_t w = dsc->header.w;
-    uint32_t h = dsc->header.h;
-    uint32_t px_count = w * h;
+    if(rle_len < 2 || w == 0 || h == 0) return LV_RES_INV;
 
-    const uint8_t px_size = sizeof(lv_color_t) + 1; /* color bytes + 1 alpha byte */
-    uint32_t buf_size = px_count * px_size;
+    rle_decoder_state_t * state = lv_mem_alloc(sizeof(rle_decoder_state_t));
+    if(state == NULL) return LV_RES_INV;
+    lv_memset_00(state, sizeof(rle_decoder_state_t));
 
-    uint8_t * buf = lv_mem_alloc(buf_size);
-    if(buf == NULL) {
-        LV_LOG_ERROR("rle_img_decoder: out of memory (%d bytes)", (int)buf_size);
+    state->palette = palette;
+    state->rle = rle;
+    state->rle_len = rle_len;
+    state->w = w;
+    state->h = h;
+    state->num_colors = num_colors;
+
+    state->row_token_offset = lv_mem_alloc((uint32_t)h * sizeof(uint32_t));
+    state->row_skip = lv_mem_alloc((uint32_t)h * sizeof(uint16_t));
+    if(state->row_token_offset == NULL || state->row_skip == NULL) {
+        if(state->row_token_offset) lv_mem_free(state->row_token_offset);
+        if(state->row_skip) lv_mem_free(state->row_skip);
+        lv_mem_free(state);
         return LV_RES_INV;
     }
 
-    uint32_t px_idx = 0;
-    uint32_t rle_pos = 0;
-    while(rle_pos + 1 < rle_len && px_idx < px_count) {
-        uint8_t color_idx = rle[rle_pos];
-        uint8_t run = rle[rle_pos + 1];
-        rle_pos += 2;
+    /* Precompute, for every row, which token it starts in and how many
+     * pixels of that token were already used up by earlier rows. */
+    uint32_t pos = 0;
+    uint16_t token_run = rle[1];
+    uint16_t used = 0;
 
-        if(color_idx >= num_colors) break; /* corrupt data guard */
+    for(uint16_t row = 0; row < h; row++) {
+        state->row_token_offset[row] = pos;
+        state->row_skip[row] = used;
 
-        const uint8_t * pal_entry = &palette[(uint32_t)color_idx * 4];
-        lv_color_t c = lv_color_make(pal_entry[0], pal_entry[1], pal_entry[2]);
-        uint8_t alpha = pal_entry[3];
-
-        for(uint16_t k = 0; k < run && px_idx < px_count; k++) {
-            uint8_t * p = &buf[(uint32_t)px_idx * px_size];
-            lv_memcpy_small(p, &c, sizeof(lv_color_t));
-            p[sizeof(lv_color_t)] = alpha;
-            px_idx++;
+        uint16_t need = w;
+        while(need > 0) {
+            uint16_t avail = token_run - used;
+            if(avail == 0) { /* malformed data guard: stop early */
+                need = 0;
+                break;
+            }
+            uint16_t take = (need < avail) ? need : avail;
+            used = (uint16_t)(used + take);
+            need = (uint16_t)(need - take);
+            if(used == token_run) {
+                pos += 2;
+                used = 0;
+                if(pos + 1 < rle_len) {
+                    token_run = rle[pos + 1];
+                } else {
+                    token_run = 0; /* end of data reached */
+                }
+            }
         }
     }
 
-    dsc->img_data = buf;
+    dsc->user_data = state;
+    dsc->img_data = NULL; /* signal LVGL to use read_line_cb */
+    return LV_RES_OK;
+}
+
+static lv_res_t rle_decoder_read_line(lv_img_decoder_t * decoder, lv_img_decoder_dsc_t * dsc,
+                                       lv_coord_t x, lv_coord_t y, lv_coord_t len, uint8_t * buf)
+{
+    LV_UNUSED(decoder);
+    rle_decoder_state_t * state = dsc->user_data;
+    if(state == NULL || y < 0 || y >= state->h) return LV_RES_INV;
+
+    const uint8_t * rle = state->rle;
+    uint32_t rle_len = state->rle_len;
+
+    uint32_t pos = state->row_token_offset[y];
+    uint16_t used = state->row_skip[y];
+    uint16_t token_run = (pos + 1 < rle_len) ? rle[pos + 1] : 0;
+
+    /* Skip forward `x` pixels within the row without writing anything. */
+    uint16_t skip_remaining = (uint16_t)x;
+    while(skip_remaining > 0 && token_run > 0) {
+        uint16_t avail = token_run - used;
+        uint16_t take = (skip_remaining < avail) ? skip_remaining : avail;
+        used = (uint16_t)(used + take);
+        skip_remaining = (uint16_t)(skip_remaining - take);
+        if(used == token_run) {
+            pos += 2;
+            used = 0;
+            token_run = (pos + 1 < rle_len) ? rle[pos + 1] : 0;
+        }
+    }
+
+    /* Emit `len` pixels. */
+    uint8_t * out = buf;
+    uint16_t remaining = (uint16_t)len;
+    while(remaining > 0 && token_run > 0) {
+        uint8_t color_idx = rle[pos];
+        const uint8_t * pal = &state->palette[(uint32_t)color_idx * 4];
+        lv_color_t c = lv_color_make(pal[0], pal[1], pal[2]);
+        uint8_t alpha = pal[3];
+
+        uint16_t avail = token_run - used;
+        uint16_t take = (remaining < avail) ? remaining : avail;
+
+        for(uint16_t k = 0; k < take; k++) {
+            lv_memcpy_small(out, &c, sizeof(lv_color_t));
+            out[sizeof(lv_color_t)] = alpha;
+            out += sizeof(lv_color_t) + 1;
+        }
+
+        used = (uint16_t)(used + take);
+        remaining = (uint16_t)(remaining - take);
+        if(used == token_run) {
+            pos += 2;
+            used = 0;
+            token_run = (pos + 1 < rle_len) ? rle[pos + 1] : 0;
+        }
+    }
+
     return LV_RES_OK;
 }
 
 static void rle_decoder_close(lv_img_decoder_t * decoder, lv_img_decoder_dsc_t * dsc)
 {
     LV_UNUSED(decoder);
-    if(dsc->img_data) {
-        lv_mem_free((void *)dsc->img_data);
-        dsc->img_data = NULL;
+    rle_decoder_state_t * state = dsc->user_data;
+    if(state) {
+        if(state->row_token_offset) lv_mem_free(state->row_token_offset);
+        if(state->row_skip) lv_mem_free(state->row_skip);
+        lv_mem_free(state);
+        dsc->user_data = NULL;
     }
 }
 
@@ -101,5 +197,6 @@ void rle_img_decoder_init(void)
     lv_img_decoder_t * dec = lv_img_decoder_create();
     lv_img_decoder_set_info_cb(dec, rle_decoder_info);
     lv_img_decoder_set_open_cb(dec, rle_decoder_open);
+    lv_img_decoder_set_read_line_cb(dec, rle_decoder_read_line);
     lv_img_decoder_set_close_cb(dec, rle_decoder_close);
 }
