@@ -43,7 +43,6 @@ const lv_img_dsc_t *idle_imgs_s[] = {
     &bongo_spheal_both1_open,
     &bongo_spheal_none,
     &bongo_spheal_none,
-    &bongo_spheal_none,
 };
 
 #define ANIMATION_SPEED_SLOW 5000
@@ -66,7 +65,7 @@ const lv_img_dsc_t *slow_imgs_s[] = {
     &bongo_spheal_both1,
 };
 
-#define ANIMATION_SPEED_MID 1000
+#define ANIMATION_SPEED_MID 800
 const lv_img_dsc_t *mid_imgs_s[] = {
     &bongo_spheal_left2,
     &bongo_spheal_left3,
