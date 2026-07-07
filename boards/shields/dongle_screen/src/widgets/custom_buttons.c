@@ -121,58 +121,52 @@ static void ui_press_end_cb(lv_event_t *e)
 /* Action callbacks                                                    */
 /* ================================================================== */
 
-static void mute_cb(lv_event_t *e)
+static void custom_button_1_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    LOG_INF("Media control: MUTE");
-    send_keycode(C_MUTE);
-}
-
-static void vol_down_cb(lv_event_t *e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
-    ui_interaction_active = false;
-    LOG_INF("Media control: VOL_DOWN");
-    send_keycode(C_VOL_DN);
-}
-
-static void vol_up_cb(lv_event_t *e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
-    ui_interaction_active = false;
-    LOG_INF("Media control: VOL_UP");
-    send_keycode(C_VOL_UP);
-}
-
-static void bri_down_cb(lv_event_t *e)
-{
-    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
-    ui_interaction_active = false;
-    LOG_INF("Media control: BRI_DOWN");
     send_keycode(C_BRI_DN);
 }
 
-static void prtscn_cb(lv_event_t *e)
+static void custom_button_2_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    LOG_INF("Media control: PRTSCN");
     send_keycode(PSCRN);
 }
 
-static void bri_up_cb(lv_event_t *e)
+static void custom_button_3_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    LOG_INF("Media control: BRI_UP");
     send_keycode(C_BRI_UP);
+}
+
+static void custom_button_4_cb(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
+    ui_interaction_active = false;
+    send_keycode(C_VOL_DN);
+}
+
+static void custom_button_5_cb(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
+    ui_interaction_active = false;
+    send_keycode(C_MUTE);
+}
+
+static void custom_button_6_cb(lv_event_t *e)
+{
+    if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+    if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
+    ui_interaction_active = false;
+    send_keycode(C_VOL_UP);
 }
 
 /* ================================================================== */
@@ -224,54 +218,54 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
     lv_obj_set_style_text_font(widget->title_label, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
-    /* ---- Brightness Down ---- */
-    bri_down_bundle.visual_btn = make_visual_btn(parent, "BRI-",
+    /* ---- BTN-1 ---- */
+    custom_button_1_bundle.visual_btn = make_visual_btn(parent, "BTN-1",
         lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
-    if (!bri_down_bundle.visual_btn) return -ENOMEM;
-    bri_down_bundle.hitbox = make_center_hitbox(bri_down_bundle.visual_btn, bri_down_cb);
-    if (!bri_down_bundle.hitbox) return -ENOMEM;
+    if (!custom_button_1_bundle.visual_btn) return -ENOMEM;
+    custom_button_1_bundle.hitbox = make_center_hitbox(custom_button_1_bundle.visual_btn, custom_button_1_cb);
+    if (!custom_button_1_bundle.hitbox) return -ENOMEM;
 
-    /* ---- Print Screen ---- */
-    prtscn_bundle.visual_btn = make_visual_btn(parent, "PRTSC",
-        lv_color_hex(0xE2A64A), LV_ALIGN_CENTER, 0, -30);
-    if (!prtscn_bundle.visual_btn) return -ENOMEM;
-    prtscn_bundle.hitbox = make_center_hitbox(prtscn_bundle.visual_btn, prtscn_cb);
-    if (!prtscn_bundle.hitbox) return -ENOMEM;
+    /* ---- BTN-2 ---- */
+    custom_button_2_bundle.visual_btn = make_visual_btn(parent, "BTN-2",
+        lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 0, -30);
+    if (!custom_button_2_bundle.visual_btn) return -ENOMEM;
+    custom_button_2_bundle.hitbox = make_center_hitbox(custom_button_2_bundle.visual_btn, custom_button_2_cb);
+    if (!custom_button_2_bundle.hitbox) return -ENOMEM;
 
-    /* ---- Brightness Up ---- */
-    bri_up_bundle.visual_btn = make_visual_btn(parent, "BRI+",
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, -30);
-    if (!bri_up_bundle.visual_btn) return -ENOMEM;
-    bri_up_bundle.hitbox = make_center_hitbox(bri_up_bundle.visual_btn, bri_up_cb);
-    if (!bri_up_bundle.hitbox) return -ENOMEM;
+    /* ---- BTN-3 ---- */
+    custom_button_3_bundle.visual_btn = make_visual_btn(parent, "BTN-3",
+        lv_color_hex(0x904AE2), LV_ALIGN_CENTER, 90, -30);
+    if (!custom_button_3_bundle.visual_btn) return -ENOMEM;
+    custom_button_3_bundle.hitbox = make_center_hitbox(custom_button_3_bundle.visual_btn, custom_button_3_cb);
+    if (!custom_button_3_bundle.hitbox) return -ENOMEM;
 
-    /* ---- Vol Down ---- */
-    vol_down_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_VOLUME_MID,
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, 50);
-    if (!vol_down_bundle.visual_btn) return -ENOMEM;
-    vol_down_bundle.hitbox = make_center_hitbox(vol_down_bundle.visual_btn, vol_down_cb);
-    if (!vol_down_bundle.hitbox) return -ENOMEM;
+    /* ---- BTN-4 ---- */
+    custom_button_4_bundle.visual_btn = make_visual_btn(parent, "BTN-4",
+        lv_color_hex(0x90E24A), LV_ALIGN_CENTER, -90, 50);
+    if (!custom_button_4_bundle.visual_btn) return -ENOMEM;
+    custom_button_4_bundle.hitbox = make_center_hitbox(custom_button_4_bundle.visual_btn, custom_button_4_cb);
+    if (!custom_button_4_bundle.hitbox) return -ENOMEM;
 
-    /* ---- Mute ---- */
-    mute_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_MUTE,
-        lv_color_hex(0xE24A4A), LV_ALIGN_CENTER, 0, 50);
-    if (!mute_bundle.visual_btn) return -ENOMEM;
-    mute_bundle.hitbox = make_center_hitbox(mute_bundle.visual_btn, mute_cb);
-    if (!mute_bundle.hitbox) return -ENOMEM;
+    /* ---- BTN-5 ---- */
+    custom_button_5_bundle.visual_btn = make_visual_btn(parent, "BTN-5",
+        lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
+    if (!custom_button_5_bundle.visual_btn) return -ENOMEM;
+    custom_button_5_bundle.hitbox = make_center_hitbox(custom_button_5_bundle.visual_btn, custom_button_5_cb);
+    if (!custom_button_5_bundle.hitbox) return -ENOMEM;
 
-    /* ---- Vol Up ---- */
-    vol_up_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_VOLUME_MAX,
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, 50);
-    if (!vol_up_bundle.visual_btn) return -ENOMEM;
-    vol_up_bundle.hitbox = make_center_hitbox(vol_up_bundle.visual_btn, vol_up_cb);
-    if (!vol_up_bundle.hitbox) return -ENOMEM;
+    /* ---- BTN-6 ---- */
+    custom_button_6_bundle.visual_btn = make_visual_btn(parent, "BTN-6",
+        lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, 50);
+    if (!custom_button_6_bundle.visual_btn) return -ENOMEM;
+    custom_button_6_bundle.hitbox = make_center_hitbox(custom_button_6_bundle.visual_btn, custom_button_6_cb);
+    if (!custom_button_6_bundle.hitbox) return -ENOMEM;
 
-    widget->bri_down_btn = bri_down_bundle.visual_btn;
-    widget->prtscn_btn   = prtscn_bundle.visual_btn;
-    widget->bri_up_btn   = bri_up_bundle.visual_btn;
-    widget->vol_down_btn = vol_down_bundle.visual_btn;
-    widget->mute_btn     = mute_bundle.visual_btn;
-    widget->vol_up_btn   = vol_up_bundle.visual_btn;
+    widget->custom_button_1_btn = custom_button_1_bundle.visual_btn;
+    widget->custom_button_2_btn = custom_button_2_bundle.visual_btn;
+    widget->custom_button_3_btn = custom_button_3_bundle.visual_btn;
+    widget->custom_button_4_btn = custom_button_4_bundle.visual_btn;
+    widget->custom_button_5_btn = custom_button_5_bundle.visual_btn;
+    widget->custom_button_6_btn = custom_button_6_bundle.visual_btn;
 
     widget->nav_hint = lv_label_create(parent);
     if (!widget->nav_hint) return -ENOMEM;
