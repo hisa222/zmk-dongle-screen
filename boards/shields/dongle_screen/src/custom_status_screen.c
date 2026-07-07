@@ -79,6 +79,7 @@ static struct zmk_widget_bongo_spheal main_bongo_spheal_widget;
 static struct zmk_widget_brightness_screen brightness_widget;
 static struct zmk_widget_system_settings system_settings_widget;
 static struct zmk_widget_media_control media_control_widget;
+static struct zmk_widget_custom_buttons custom_buttons_widget;
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
