@@ -71,6 +71,7 @@ static struct zmk_widget_bongo_boo main_bongo_boo_widget;
 
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
 #include "widgets/bongo_spheal.h"
+#include "widgets/rle_img_decoder.h"
 static struct zmk_widget_bongo_spheal main_bongo_spheal_widget;
 #endif
 
@@ -403,6 +404,10 @@ ZMK_SUBSCRIPTION(swipe_gesture_screen, zmk_swipe_gesture_event);
 
 lv_obj_t *zmk_display_status_screen(void)
 {
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
+    rle_img_decoder_init();
+#endif
+    
     display_settings_init();
 
     lv_style_init(&global_style);
