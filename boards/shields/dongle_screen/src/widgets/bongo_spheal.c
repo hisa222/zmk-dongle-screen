@@ -34,14 +34,14 @@ LV_IMG_DECLARE(bongo_spheal_both1);
 LV_IMG_DECLARE(bongo_spheal_both1_open);
 LV_IMG_DECLARE(bongo_spheal_both2);
 
-#define ANIMATION_SPEED_IDLE 10000
+#define ANIMATION_SPEED_IDLE 20000
 const lv_img_dsc_t *idle_imgs_s[] = {
-    &bongo_spheal_both1_open,
     &bongo_spheal_both1_open,
     &bongo_spheal_both1_open,
     &bongo_spheal_both1,
     &bongo_spheal_both1_open,
     &bongo_spheal_both1_open,
+    &bongo_spheal_none,
     &bongo_spheal_none,
     &bongo_spheal_none,
 };
