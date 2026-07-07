@@ -87,7 +87,7 @@ const lv_img_dsc_t *mid_imgs_b[] = {
     &bongo_boo_none2,
 };
 
-#define ANIMATION_SPEED_FAST 300
+#define ANIMATION_SPEED_FAST 500
 const lv_img_dsc_t *fast_imgs_b[] = {
     &bongo_boo_both2,
     &bongo_boo_both1,
