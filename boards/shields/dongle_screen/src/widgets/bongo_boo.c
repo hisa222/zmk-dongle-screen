@@ -51,7 +51,7 @@ const lv_img_dsc_t *idle_imgs_b[] = {
     &bongo_boo_none3,
 };
 
-#define ANIMATION_SPEED_SLOW 2000
+#define ANIMATION_SPEED_SLOW 3000
 const lv_img_dsc_t *slow_imgs_b[] = {
     &bongo_boo_left1,
     &bongo_boo_both1,
@@ -71,7 +71,7 @@ const lv_img_dsc_t *slow_imgs_b[] = {
     &bongo_boo_both1,
 };
 
-#define ANIMATION_SPEED_MID 700
+#define ANIMATION_SPEED_MID 1000
 const lv_img_dsc_t *mid_imgs_b[] = {
     &bongo_boo_left2,
     &bongo_boo_left1,
@@ -87,7 +87,7 @@ const lv_img_dsc_t *mid_imgs_b[] = {
     &bongo_boo_none2,
 };
 
-#define ANIMATION_SPEED_FAST 200
+#define ANIMATION_SPEED_FAST 300
 const lv_img_dsc_t *fast_imgs_b[] = {
     &bongo_boo_both2,
     &bongo_boo_both1,
