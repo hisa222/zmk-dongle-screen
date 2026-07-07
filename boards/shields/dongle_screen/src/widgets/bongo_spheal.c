@@ -80,10 +80,8 @@ const lv_img_dsc_t *mid_imgs_s[] = {
 const lv_img_dsc_t *fast_imgs_s[] = {
     &bongo_spheal_both2,
     &bongo_spheal_both1,
-    &bongo_spheal_both1_open,
     &bongo_spheal_both2,
     &bongo_spheal_both1,
-    &bongo_spheal_both1_open,
 };
 
 struct bongo_spheal_wpm_status_state {
