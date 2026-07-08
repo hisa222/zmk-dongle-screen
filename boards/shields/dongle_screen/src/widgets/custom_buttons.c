@@ -32,6 +32,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define ACTION_HIT_W 60
 #define ACTION_HIT_H 50
 
+/* 枠線の共通色設定 */
+#define BORDER_COLOR_NORMAL  0x666666  /* 通常時: グレー */
+#define BORDER_COLOR_PRESSED 0xFFD700  /* 押下時: ゴールド */
+#define BORDER_WIDTH 2
+
 /* ================================================================== */
 /* Keycode送信ヘルパー                                                 */
 /* ================================================================== */
@@ -74,7 +79,7 @@ static struct action_btn_bundle custom_button_5_bundle;
 static struct action_btn_bundle custom_button_6_bundle;
 
 /* ================================================================== */
-/* Visual button helper (system_settings_widget.c と同一実装)          */
+/* Visual button helper                                                */
 /* ================================================================== */
 
 static lv_obj_t *make_visual_btn(lv_obj_t *parent, const char *text,
@@ -93,8 +98,15 @@ static lv_obj_t *make_visual_btn(lv_obj_t *parent, const char *text,
     lv_obj_set_style_bg_color(obj, bg, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
     lv_obj_set_style_radius(obj, 12, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_width(obj, 0, LV_STATE_DEFAULT);
     lv_obj_set_style_pad_all(obj, 0, LV_STATE_DEFAULT);
+
+    /* 枠線: 通常時 */
+    lv_obj_set_style_border_width(obj, BORDER_WIDTH, LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(obj, lv_color_hex(BORDER_COLOR_NORMAL), LV_STATE_DEFAULT);
+
+    /* 枠線: 押下時（手動で LV_STATE_PRESSED を付与したときに適用される） */
+    lv_obj_set_style_border_color(obj, lv_color_hex(BORDER_COLOR_PRESSED), LV_STATE_PRESSED);
 
     lv_obj_t *lbl = lv_label_create(obj);
     lv_label_set_text(lbl, text);
@@ -106,18 +118,32 @@ static lv_obj_t *make_visual_btn(lv_obj_t *parent, const char *text,
 }
 
 /* ================================================================== */
-/* Interaction state callbacks (system_settings_widget.c と同一実装)   */
+/* Interaction state callbacks                                         */
 /* ================================================================== */
 
+/*
+ * hitbox は各 visual_btn の子オブジェクトとして生成されているため、
+ * lv_obj_get_parent() で対応する visual_btn を取得できる。
+ * その visual_btn にだけ LV_STATE_PRESSED を付け外しすることで、
+ * 押下したボタンの枠線のみ色が変わるようにする。
+ */
 static void ui_press_start_cb(lv_event_t *e)
 {
-    ARG_UNUSED(e);
+    lv_obj_t *hitbox = lv_event_get_target(e);
+    lv_obj_t *visual_btn = lv_obj_get_parent(hitbox);
+    if (visual_btn) {
+        lv_obj_add_state(visual_btn, LV_STATE_PRESSED);
+    }
     ui_interaction_active = true;
 }
 
 static void ui_press_end_cb(lv_event_t *e)
 {
-    ARG_UNUSED(e);
+    lv_obj_t *hitbox = lv_event_get_target(e);
+    lv_obj_t *visual_btn = lv_obj_get_parent(hitbox);
+    if (visual_btn) {
+        lv_obj_clear_state(visual_btn, LV_STATE_PRESSED);
+    }
     ui_interaction_active = false;
 }
 
@@ -174,7 +200,7 @@ static void custom_button_6_cb(lv_event_t *e)
 }
 
 /* ================================================================== */
-/* Hitbox helper (system_settings_widget.c と同一実装)                 */
+/* Hitbox helper                                                       */
 /* ================================================================== */
 
 static lv_obj_t *make_center_hitbox(lv_obj_t *parent_visual_btn,
@@ -223,42 +249,42 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
     /* ---- BTN-1 ---- */
-    custom_button_1_bundle.visual_btn = make_visual_btn(parent, "Cmd-1",
+    custom_button_1_bundle.visual_btn = make_visual_btn(parent, "BTN-1",
         lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
     if (!custom_button_1_bundle.visual_btn) return -ENOMEM;
     custom_button_1_bundle.hitbox = make_center_hitbox(custom_button_1_bundle.visual_btn, custom_button_1_cb);
     if (!custom_button_1_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-2 ---- */
-    custom_button_2_bundle.visual_btn = make_visual_btn(parent, "Cmd-2",
+    custom_button_2_bundle.visual_btn = make_visual_btn(parent, "BTN-2",
         lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
     if (!custom_button_2_bundle.visual_btn) return -ENOMEM;
     custom_button_2_bundle.hitbox = make_center_hitbox(custom_button_2_bundle.visual_btn, custom_button_2_cb);
     if (!custom_button_2_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-3 ---- */
-    custom_button_3_bundle.visual_btn = make_visual_btn(parent, "Cmd-3",
+    custom_button_3_bundle.visual_btn = make_visual_btn(parent, "BTN-3",
         lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, -30);
     if (!custom_button_3_bundle.visual_btn) return -ENOMEM;
     custom_button_3_bundle.hitbox = make_center_hitbox(custom_button_3_bundle.visual_btn, custom_button_3_cb);
     if (!custom_button_3_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-4 ---- */
-    custom_button_4_bundle.visual_btn = make_visual_btn(parent, "Cmd-4",
+    custom_button_4_bundle.visual_btn = make_visual_btn(parent, "BTN-4",
         lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
     if (!custom_button_4_bundle.visual_btn) return -ENOMEM;
     custom_button_4_bundle.hitbox = make_center_hitbox(custom_button_4_bundle.visual_btn, custom_button_4_cb);
     if (!custom_button_4_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-5 ---- */
-    custom_button_5_bundle.visual_btn = make_visual_btn(parent, "Cmd-5",
+    custom_button_5_bundle.visual_btn = make_visual_btn(parent, "BTN-5",
         lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
     if (!custom_button_5_bundle.visual_btn) return -ENOMEM;
     custom_button_5_bundle.hitbox = make_center_hitbox(custom_button_5_bundle.visual_btn, custom_button_5_cb);
     if (!custom_button_5_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-6 ---- */
-    custom_button_6_bundle.visual_btn = make_visual_btn(parent, "Cmd-6",
+    custom_button_6_bundle.visual_btn = make_visual_btn(parent, "BTN-6",
         lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
     if (!custom_button_6_bundle.visual_btn) return -ENOMEM;
     custom_button_6_bundle.hitbox = make_center_hitbox(custom_button_6_bundle.visual_btn, custom_button_6_cb);
