@@ -293,7 +293,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     boot_bundle.visual_btn = make_visual_btn(
         parent,
         "Enter Bootloader",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
         lv_color_hex(0x000000),
         #else
         lv_color_hex(0x4A90E2),
@@ -312,7 +312,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     reset_bundle.visual_btn = make_visual_btn(
         parent,
         "System Reset",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
         lv_color_hex(0x000000),
         #else
         lv_color_hex(0xE24A4A),
