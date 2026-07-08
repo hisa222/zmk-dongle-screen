@@ -253,7 +253,7 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
     /* ---- Brightness Down ---- */
     bri_down_bundle.visual_btn = make_visual_btn(parent, "BRI-",
         #if DONGLE_SCREEN_BUTTONS_MONO
-
+            lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
         #endif
