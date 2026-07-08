@@ -262,7 +262,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     /* ---- BTN-2 ---- */
     custom_button_2_bundle.visual_btn = make_visual_btn(parent, "BTN-2",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
         #else
             lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
         #endif
@@ -273,7 +273,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     /* ---- BTN-3 ---- */
     custom_button_3_bundle.visual_btn = make_visual_btn(parent, "BTN-3",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
         #else
             lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, -30);
         #endif
@@ -284,7 +284,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     /* ---- BTN-4 ---- */
     custom_button_4_bundle.visual_btn = make_visual_btn(parent, "BTN-4",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
         #else
             lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
         #endif
@@ -295,7 +295,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     /* ---- BTN-5 ---- */
     custom_button_5_bundle.visual_btn = make_visual_btn(parent, "BTN-5",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
         #else
             lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
         #endif
@@ -306,7 +306,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     /* ---- BTN-6 ---- */
     custom_button_6_bundle.visual_btn = make_visual_btn(parent, "BTN-6",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
         #else
             lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
         #endif
