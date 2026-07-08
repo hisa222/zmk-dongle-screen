@@ -2,7 +2,7 @@
  * Copyright (c) 2024 The ZMK Contributors
  * SPDX-License-Identifier: MIT
  *
- * Media Control Widget (LVGL8 / ZMK 3.5)
+ * Custom Buttons Widget (LVGL8 / ZMK 3.5)
  * system_settings_widget.c と同じ hitbox 方式を流用。
  */
 
@@ -204,7 +204,7 @@ static lv_obj_t *make_center_hitbox(lv_obj_t *parent_visual_btn,
 /* Widget init                                                         */
 /* ================================================================== */
 
-int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
+int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
                                    lv_obj_t *parent)
 {
     if (!widget || !parent) return -EINVAL;
@@ -213,7 +213,7 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
 
     widget->title_label = lv_label_create(parent);
     if (!widget->title_label) return -ENOMEM;
-    lv_label_set_text(widget->title_label, "Media Control");
+    lv_label_set_text(widget->title_label, "Short Cuts");
     lv_obj_set_style_text_color(widget->title_label, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->title_label, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
