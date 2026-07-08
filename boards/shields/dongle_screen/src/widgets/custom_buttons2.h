@@ -18,7 +18,7 @@ struct zmk_widget_custom_buttons2 {
     lv_obj_t *nav_hint;
 };
 
-int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons *widget,
+int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
                                    lv_obj_t *parent);
 
 static inline lv_obj_t *zmk_widget_custom_buttons2_obj(struct zmk_widget_custom_buttons2 *widget)
