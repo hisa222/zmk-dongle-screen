@@ -23,8 +23,16 @@
 #include "display_settings.h"
 #include "widgets/brightness_screen.h"
 #include "widgets/system_settings_widget.h"
-#include "widgets/media_control_widget.h"
 #include "widgets/custom_buttons.h"
+
+#if CONFIG_DONGLE_SCREEN_MEDIA_ACTIVE
+#include "widgets/media_control_widget.h"
+static struct zmk_widget_media_control media_control_widget;
+#else
+#include "widgets/custom_buttons2.h"
+static struct zmk_widget_custom_buttons2 custom_buttons2_widget;
+#endif
+
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
 #include "widgets/output_status.h"
@@ -78,7 +86,6 @@ static struct zmk_widget_bongo_spheal main_bongo_spheal_widget;
 
 static struct zmk_widget_brightness_screen brightness_widget;
 static struct zmk_widget_system_settings system_settings_widget;
-static struct zmk_widget_media_control media_control_widget;
 static struct zmk_widget_custom_buttons custom_buttons_widget;
 
 #include <zephyr/kernel.h>
@@ -107,7 +114,11 @@ enum dongle_screen_id {
     SCREEN_MAIN = 0,
     SCREEN_BRIGHTNESS = 1,
     SCREEN_SYSTEM_SETTINGS = 2,
+    #if CONFIG_DONGLE_SCREEN_MEDIA_ACTIVE
     SCREEN_MEDIA_CONTROL = 3,
+    #else
+    SCREEN_CUSTOM_BUTTONS2 = 3,
+    #endif
     SCREEN_CUSTOM_BUTTONS = 4,
 };
 
@@ -282,6 +293,8 @@ static lv_obj_t *create_system_settings_screen(void)
     return screen;
 }
 
+#if CONFIG_DONGLE_SCREEN_MEDIA_ACTIVE
+
 /* ================================================================== */
 /* Media control screen                                               */
 /* ================================================================== */
@@ -292,6 +305,21 @@ static lv_obj_t *create_media_control_screen(void)
     zmk_widget_media_control_init(&media_control_widget, screen);
     return screen;
 }
+
+#else
+
+/* ================================================================== */
+/* Custom buttons2 screen                                             */
+/* ================================================================== */
+
+static lv_obj_t *create_custom_buttons2_screen(void)
+{
+    lv_obj_t *screen = make_screen();
+    zmk_widget_custom_buttons2_init(&custom_buttons2_widget, screen); 
+    return screen;
+}
+
+#endif
 
 /* ================================================================== */
 /* Custom buttons screen                                              */
@@ -347,6 +375,7 @@ static void activate_screen(int next)
 static int next_screen_for_direction(int current, enum swipe_direction direction)
 {
     switch (direction) {
+    #if CONFIG_DONGLE_SCREEN_MEDIA_ACTIVE
     case SWIPE_DIRECTION_RIGHT:
         if (current == SCREEN_MEDIA_CONTROL) {
             return SCREEN_MAIN;
@@ -364,7 +393,25 @@ static int next_screen_for_direction(int current, enum swipe_direction direction
             return SCREEN_MAIN;
         }
         return SCREEN_MEDIA_CONTROL;
-
+    #else
+    case SWIPE_DIRECTION_RIGHT:
+        if (current == SCREEN_CUSTOM_BUTTONS2) {
+            return SCREEN_MAIN;
+        }
+        if (current == SCREEN_CUSTOM_BUTTONS) {
+            return SCREEN_CUSTOM_BUTTONS2;
+        }
+        return SCREEN_CUSTOM_BUTTONS;
+        
+    case SWIPE_DIRECTION_LEFT:
+        if (current == SCREEN_CUSTOM_BUTTONS2) {
+            return SCREEN_CUSTOM_BUTTONS;
+        }
+        if (current == SCREEN_CUSTOM_BUTTONS) {
+            return SCREEN_MAIN;
+        }
+        return SCREEN_CUSTOM_BUTTONS2;
+    #endif
     case SWIPE_DIRECTION_UP:
         switch (current) {
         case SCREEN_MAIN:
@@ -373,7 +420,7 @@ static int next_screen_for_direction(int current, enum swipe_direction direction
             return SCREEN_BRIGHTNESS;
         case SCREEN_BRIGHTNESS:
             return SCREEN_MAIN;
-        default: /* MEDIA_CONTROL: MAIN経由せず正順ループの先頭へ */
+        default:
             return SCREEN_SYSTEM_SETTINGS;
         }
 
@@ -385,7 +432,7 @@ static int next_screen_for_direction(int current, enum swipe_direction direction
             return SCREEN_SYSTEM_SETTINGS;
         case SCREEN_SYSTEM_SETTINGS:
             return SCREEN_MAIN;
-        default: /* MEDIA_CONTROL: MAIN経由せず逆順ループの先頭へ */
+        default:
             return SCREEN_BRIGHTNESS;
         }
 
@@ -440,7 +487,11 @@ lv_obj_t *zmk_display_status_screen(void)
     screens[SCREEN_MAIN] = create_main_screen();
     screens[SCREEN_BRIGHTNESS] = create_brightness_screen();
     screens[SCREEN_SYSTEM_SETTINGS] = create_system_settings_screen();
+    #if CONFIG_DONGLE_SCREEN_MEDIA_ACTIVE
     screens[SCREEN_MEDIA_CONTROL] = create_media_control_screen();
+    #else
+    screens[SCREEN_CUSTOM_BUTTONS2] = create_custom_buttons2_screen();
+    #endif
     screens[SCREEN_CUSTOM_BUTTONS] = create_custom_buttons_screen();
     
     ensure_lvgl_indev_registered();
