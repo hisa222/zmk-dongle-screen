@@ -66,8 +66,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define ACTION_HIT_H 60
 
 /* 枠線の共通色設定 */
-#define BORDER_COLOR_NORMAL  0x666666  /* 通常時: グレー */
-#define BORDER_COLOR_PRESSED 0xFFD700  /* 押下時: ゴールド */
+#define BORDER_COLOR_NORMAL  0xFFFFFF  /* 通常時: White */
+#define BORDER_COLOR_PRESSED 0x00FF00  /* 押下時: Green */
 #define BORDER_WIDTH 2
 
 /* ================================================================== */
@@ -293,7 +293,11 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     boot_bundle.visual_btn = make_visual_btn(
         parent,
         "Enter Bootloader",
+        #if DONGLE_SCREEN_BUTTONS_MONO
+        lv_color_hex(0x000000),
+        #else
         lv_color_hex(0x4A90E2),
+        #endif
         LV_ALIGN_CENTER, 0, -52);
     if (!boot_bundle.visual_btn) {
         return -ENOMEM;
@@ -308,7 +312,11 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
     reset_bundle.visual_btn = make_visual_btn(
         parent,
         "System Reset",
+        #if DONGLE_SCREEN_BUTTONS_MONO
+        lv_color_hex(0x000000),
+        #else
         lv_color_hex(0xE24A4A),
+        #endif
         LV_ALIGN_CENTER, 0, 52);
     if (!reset_bundle.visual_btn) {
         return -ENOMEM;
