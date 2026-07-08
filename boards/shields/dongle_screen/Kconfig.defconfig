@@ -141,6 +141,12 @@ config DONGLE_SCREEN_BRIGHTNESS_STEP
     help
       How much brightness steps (range MIN_BRIGHTNESS to MAX_BRIGHTNESS) should be applied per keystroke
 
+config DONGLE_SCREEN_MEDIA_ACTIVE
+    bool "Media screen active"
+    default y
+    help
+      If the Media screen should be active or not
+
 config DONGLE_SCREEN_WPM_ACTIVE
     bool "WPM Widget active"
     default y
