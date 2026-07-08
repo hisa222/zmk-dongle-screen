@@ -33,8 +33,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define ACTION_HIT_H 50
 
 /* 枠線の共通色設定 */
-#define BORDER_COLOR_NORMAL  0x666666  /* 通常時: グレー */
-#define BORDER_COLOR_PRESSED 0xFFD700  /* 押下時: ゴールド */
+#define BORDER_COLOR_NORMAL  0xFFFFFF  /* 通常時: White */
+#define BORDER_COLOR_PRESSED 0x00FF00  /* 押下時: Green */
 #define BORDER_WIDTH 2
 
 /* ================================================================== */
