@@ -249,7 +249,7 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
     /* ---- BTN-1 ---- */
-    custom_button2_1_bundle.visual_btn = make_visual_btn(parent, "BTN-7",
+    custom_button2_1_bundle.visual_btn = make_visual_btn(parent, "Win-1",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
         #else
@@ -260,7 +260,7 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
     if (!custom_button2_1_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-2 ---- */
-    custom_button2_2_bundle.visual_btn = make_visual_btn(parent, "BTN-8",
+    custom_button2_2_bundle.visual_btn = make_visual_btn(parent, "Win-2",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
         #else
@@ -271,7 +271,7 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
     if (!custom_button2_2_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-3 ---- */
-    custom_button2_3_bundle.visual_btn = make_visual_btn(parent, "BTN-9",
+    custom_button2_3_bundle.visual_btn = make_visual_btn(parent, "Win-3",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
         #else
@@ -282,7 +282,7 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
     if (!custom_button2_3_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-4 ---- */
-    custom_button2_4_bundle.visual_btn = make_visual_btn(parent, "BTN-10",
+    custom_button2_4_bundle.visual_btn = make_visual_btn(parent, "Win-4",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
         #else
@@ -293,7 +293,7 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
     if (!custom_button2_4_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-5 ---- */
-    custom_button2_5_bundle.visual_btn = make_visual_btn(parent, "BTN-11",
+    custom_button2_5_bundle.visual_btn = make_visual_btn(parent, "Win-5",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
         #else
@@ -304,7 +304,7 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
     if (!custom_button2_5_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-6 ---- */
-    custom_button2_6_bundle.visual_btn = make_visual_btn(parent, "BTN-12",
+    custom_button2_6_bundle.visual_btn = make_visual_btn(parent, "Win-6",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
         #else
