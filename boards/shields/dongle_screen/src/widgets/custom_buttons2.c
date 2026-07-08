@@ -71,12 +71,12 @@ struct action_btn_bundle {
     lv_obj_t *hitbox;
 };
 
-static struct action_btn_bundle custom_button_1_bundle;
-static struct action_btn_bundle custom_button_2_bundle;
-static struct action_btn_bundle custom_button_3_bundle;
-static struct action_btn_bundle custom_button_4_bundle;
-static struct action_btn_bundle custom_button_5_bundle;
-static struct action_btn_bundle custom_button_6_bundle;
+static struct action_btn_bundle custom_button2_1_bundle;
+static struct action_btn_bundle custom_button2_2_bundle;
+static struct action_btn_bundle custom_button2_3_bundle;
+static struct action_btn_bundle custom_button2_4_bundle;
+static struct action_btn_bundle custom_button2_5_bundle;
+static struct action_btn_bundle custom_button2_6_bundle;
 
 /* ================================================================== */
 /* Visual button helper                                                */
@@ -151,7 +151,7 @@ static void ui_press_end_cb(lv_event_t *e)
 /* Action callbacks                                                    */
 /* ================================================================== */
 
-static void custom_button_1_cb(lv_event_t *e)
+static void custom_button2_1_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
@@ -159,7 +159,7 @@ static void custom_button_1_cb(lv_event_t *e)
     send_keycode(C_BRI_DN);
 }
 
-static void custom_button_2_cb(lv_event_t *e)
+static void custom_button2_2_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
@@ -167,7 +167,7 @@ static void custom_button_2_cb(lv_event_t *e)
     send_keycode(PSCRN);
 }
 
-static void custom_button_3_cb(lv_event_t *e)
+static void custom_button2_3_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
@@ -175,7 +175,7 @@ static void custom_button_3_cb(lv_event_t *e)
     send_keycode(C_BRI_UP);
 }
 
-static void custom_button_4_cb(lv_event_t *e)
+static void custom_button2_4_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
@@ -183,7 +183,7 @@ static void custom_button_4_cb(lv_event_t *e)
     send_keycode(C_VOL_DN);
 }
 
-static void custom_button_5_cb(lv_event_t *e)
+static void custom_button2_5_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
@@ -191,7 +191,7 @@ static void custom_button_5_cb(lv_event_t *e)
     send_keycode(C_MUTE);
 }
 
-static void custom_button_6_cb(lv_event_t *e)
+static void custom_button2_6_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
@@ -243,83 +243,83 @@ int zmk_widget_custom_buttons2_init(struct zmk_widget_custom_buttons2 *widget,
 
     widget->title_label = lv_label_create(parent);
     if (!widget->title_label) return -ENOMEM;
-    lv_label_set_text(widget->title_label, "Short Cuts");
+    lv_label_set_text(widget->title_label, "Short Cuts-2");
     lv_obj_set_style_text_color(widget->title_label, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(widget->title_label, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
     /* ---- BTN-1 ---- */
-    custom_button_1_bundle.visual_btn = make_visual_btn(parent, "BTN-1",
+    custom_button2_1_bundle.visual_btn = make_visual_btn(parent, "BTN-7",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
         #else
-            lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
+            lv_color_hex(0x4AE290), LV_ALIGN_CENTER, -90, -30);
         #endif
-    if (!custom_button_1_bundle.visual_btn) return -ENOMEM;
-    custom_button_1_bundle.hitbox = make_center_hitbox(custom_button_1_bundle.visual_btn, custom_button_1_cb);
-    if (!custom_button_1_bundle.hitbox) return -ENOMEM;
+    if (!custom_button2_1_bundle.visual_btn) return -ENOMEM;
+    custom_button2_1_bundle.hitbox = make_center_hitbox(custom_button2_1_bundle.visual_btn, custom_button2_1_cb);
+    if (!custom_button2_1_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-2 ---- */
-    custom_button_2_bundle.visual_btn = make_visual_btn(parent, "BTN-2",
+    custom_button2_2_bundle.visual_btn = make_visual_btn(parent, "BTN-8",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
         #else
-            lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
+            lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, -30);
         #endif
-    if (!custom_button_2_bundle.visual_btn) return -ENOMEM;
-    custom_button_2_bundle.hitbox = make_center_hitbox(custom_button_2_bundle.visual_btn, custom_button_2_cb);
-    if (!custom_button_2_bundle.hitbox) return -ENOMEM;
+    if (!custom_button2_2_bundle.visual_btn) return -ENOMEM;
+    custom_button2_2_bundle.hitbox = make_center_hitbox(custom_button2_2_bundle.visual_btn, custom_button2_2_cb);
+    if (!custom_button2_2_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-3 ---- */
-    custom_button_3_bundle.visual_btn = make_visual_btn(parent, "BTN-3",
+    custom_button2_3_bundle.visual_btn = make_visual_btn(parent, "BTN-9",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
         #else
-            lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, -30);
+            lv_color_hex(0xE2504A), LV_ALIGN_CENTER, 90, -30);
         #endif
-    if (!custom_button_3_bundle.visual_btn) return -ENOMEM;
-    custom_button_3_bundle.hitbox = make_center_hitbox(custom_button_3_bundle.visual_btn, custom_button_3_cb);
-    if (!custom_button_3_bundle.hitbox) return -ENOMEM;
+    if (!custom_button2_3_bundle.visual_btn) return -ENOMEM;
+    custom_button2_3_bundle.hitbox = make_center_hitbox(custom_button2_3_bundle.visual_btn, custom_button2_3_cb);
+    if (!custom_button2_3_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-4 ---- */
-    custom_button_4_bundle.visual_btn = make_visual_btn(parent, "BTN-4",
+    custom_button2_4_bundle.visual_btn = make_visual_btn(parent, "BTN-10",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
         #else
-            lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
+            lv_color_hex(0xE2904A), LV_ALIGN_CENTER, -90, 50);
         #endif
-    if (!custom_button_4_bundle.visual_btn) return -ENOMEM;
-    custom_button_4_bundle.hitbox = make_center_hitbox(custom_button_4_bundle.visual_btn, custom_button_4_cb);
-    if (!custom_button_4_bundle.hitbox) return -ENOMEM;
+    if (!custom_button2_4_bundle.visual_btn) return -ENOMEM;
+    custom_button2_4_bundle.hitbox = make_center_hitbox(custom_button2_4_bundle.visual_btn, custom_button2_4_cb);
+    if (!custom_button2_4_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-5 ---- */
-    custom_button_5_bundle.visual_btn = make_visual_btn(parent, "BTN-5",
+    custom_button2_5_bundle.visual_btn = make_visual_btn(parent, "BTN-11",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
         #else
-            lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
+            lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, 50);
         #endif
-    if (!custom_button_5_bundle.visual_btn) return -ENOMEM;
-    custom_button_5_bundle.hitbox = make_center_hitbox(custom_button_5_bundle.visual_btn, custom_button_5_cb);
-    if (!custom_button_5_bundle.hitbox) return -ENOMEM;
+    if (!custom_button2_5_bundle.visual_btn) return -ENOMEM;
+    custom_button2_5_bundle.hitbox = make_center_hitbox(custom_button2_5_bundle.visual_btn, custom_button2_5_cb);
+    if (!custom_button2_5_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-6 ---- */
-    custom_button_6_bundle.visual_btn = make_visual_btn(parent, "BTN-6",
+    custom_button2_6_bundle.visual_btn = make_visual_btn(parent, "BTN-12",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
         #else
-            lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
+            lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, 50);
         #endif
-    if (!custom_button_6_bundle.visual_btn) return -ENOMEM;
-    custom_button_6_bundle.hitbox = make_center_hitbox(custom_button_6_bundle.visual_btn, custom_button_6_cb);
-    if (!custom_button_6_bundle.hitbox) return -ENOMEM;
+    if (!custom_button2_6_bundle.visual_btn) return -ENOMEM;
+    custom_button2_6_bundle.hitbox = make_center_hitbox(custom_button2_6_bundle.visual_btn, custom_button2_6_cb);
+    if (!custom_button2_6_bundle.hitbox) return -ENOMEM;
 
-    widget->custom_button_1_btn = custom_button_1_bundle.visual_btn;
-    widget->custom_button_2_btn = custom_button_2_bundle.visual_btn;
-    widget->custom_button_3_btn = custom_button_3_bundle.visual_btn;
-    widget->custom_button_4_btn = custom_button_4_bundle.visual_btn;
-    widget->custom_button_5_btn = custom_button_5_bundle.visual_btn;
-    widget->custom_button_6_btn = custom_button_6_bundle.visual_btn;
+    widget->custom_button2_1_btn = custom_button2_1_bundle.visual_btn;
+    widget->custom_button2_2_btn = custom_button2_2_bundle.visual_btn;
+    widget->custom_button2_3_btn = custom_button2_3_bundle.visual_btn;
+    widget->custom_button2_4_btn = custom_button2_4_bundle.visual_btn;
+    widget->custom_button2_5_btn = custom_button2_5_bundle.visual_btn;
+    widget->custom_button2_6_btn = custom_button2_6_bundle.visual_btn;
 
     widget->nav_hint = lv_label_create(parent);
     if (!widget->nav_hint) return -ENOMEM;
