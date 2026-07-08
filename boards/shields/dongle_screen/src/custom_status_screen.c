@@ -347,9 +347,7 @@ static void activate_screen(int next)
 static int next_screen_for_direction(int current, enum swipe_direction direction)
 {
     switch (direction) {
-    case SWIPE_DIRECTION_LEFT:
-        /* MEDIA_CONTROL からは MAIN へ、それ以外（MAIN含む）からは
-         * MAIN経由せず直接 MEDIA_CONTROL へ。 */
+    case SWIPE_DIRECTION_RIGHT:
         if (current == SCREEN_MEDIA_CONTROL) {
             return SCREEN_MAIN;
         }
@@ -358,9 +356,7 @@ static int next_screen_for_direction(int current, enum swipe_direction direction
         }
         return SCREEN_CUSTOM_BUTTONS;
         
-    case SWIPE_DIRECTION_RIGHT:
-        /* MEDIA_CONTROL からは MAIN へ、それ以外（MAIN含む）からは
-         * MAIN経由せず直接 MEDIA_CONTROL へ。 */
+    case SWIPE_DIRECTION_LEFT:
         if (current == SCREEN_MEDIA_CONTROL) {
             return SCREEN_CUSTOM_BUTTONS;
         }
