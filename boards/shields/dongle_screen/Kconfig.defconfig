@@ -198,6 +198,12 @@ config DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
     help
       If the BongoSpheal Widget should be active or not
 
+config DONGLE_SCREEN_BUTTONS_MONO
+    bool "Buttons color setting on screen"
+    default n
+    help
+      If you like monochrome, select y
+
 config DONGLE_SCREEN_AMBIENT_LIGHT
     bool "Enable automatic brightness via ambient light sensor"
     default n
