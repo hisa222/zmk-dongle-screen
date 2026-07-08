@@ -9,12 +9,12 @@
 struct zmk_widget_custom_buttons2 {
     lv_obj_t *obj;
     lv_obj_t *title_label;
-    lv_obj_t *custom_button_1_btn;
-    lv_obj_t *custom_button_2_btn;
-    lv_obj_t *custom_button_3_btn;
-    lv_obj_t *custom_button_4_btn;
-    lv_obj_t *custom_button_5_btn;
-    lv_obj_t *custom_button_6_btn;
+    lv_obj_t *custom_button2_1_btn;
+    lv_obj_t *custom_button2_2_btn;
+    lv_obj_t *custom_button2_3_btn;
+    lv_obj_t *custom_button2_4_btn;
+    lv_obj_t *custom_button2_5_btn;
+    lv_obj_t *custom_button2_6_btn;
     lv_obj_t *nav_hint;
 };
 
