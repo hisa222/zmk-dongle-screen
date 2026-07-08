@@ -300,7 +300,7 @@ static lv_obj_t *create_media_control_screen(void)
 static lv_obj_t *create_custom_buttons_screen(void)
 {
     lv_obj_t *screen = make_screen();
-    zmk_custom_buttons_init(&custom_buttons_widget, screen); 
+    zmk_widget_custom_buttons_init(&custom_buttons_widget, screen); 
     return screen;
 }
 
