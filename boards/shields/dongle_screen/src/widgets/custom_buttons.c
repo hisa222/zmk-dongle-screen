@@ -4,6 +4,10 @@
  *
  * Custom Buttons Widget (LVGL8 / ZMK 3.5)
  * system_settings_widget.c と同じ hitbox 方式を流用。
+ *
+ *    | Btn1 | | Btn2 | | Btn3 |
+ *
+ *    | Btn4 | | Btn5 | | Btn6 |
  */
 
 #include "custom_buttons.h"
