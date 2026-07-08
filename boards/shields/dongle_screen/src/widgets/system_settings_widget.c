@@ -66,7 +66,11 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define ACTION_HIT_H 60
 
 /* 枠線の共通色設定 */
+#if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
 #define BORDER_COLOR_NORMAL  0xFFFFFF  /* 通常時: White */
+#else
+#define BORDER_COLOR_NORMAL  0x000000  /* 通常時: Black */
+#endif
 #define BORDER_COLOR_PRESSED 0x00FF00  /* 押下時: Green */
 #define BORDER_WIDTH 2
 
