@@ -156,7 +156,7 @@ static void custom_button2_1_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    send_keycode(LGUI(N1));
+    send_keycode(LG(N1));
 }
 
 static void custom_button2_2_cb(lv_event_t *e)
@@ -164,7 +164,7 @@ static void custom_button2_2_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    send_keycode(LGUI(N2));
+    send_keycode(LG(N2));
 }
 
 static void custom_button2_3_cb(lv_event_t *e)
@@ -172,7 +172,7 @@ static void custom_button2_3_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    send_keycode(LGUI(N3));
+    send_keycode(LG(N3));
 }
 
 static void custom_button2_4_cb(lv_event_t *e)
@@ -180,7 +180,7 @@ static void custom_button2_4_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    send_keycode(LGUI(N4));
+    send_keycode(LG(N4));
 }
 
 static void custom_button2_5_cb(lv_event_t *e)
@@ -188,7 +188,7 @@ static void custom_button2_5_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    send_keycode(LGUI(N5));
+    send_keycode(LG(N5));
 }
 
 static void custom_button2_6_cb(lv_event_t *e)
@@ -196,7 +196,7 @@ static void custom_button2_6_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    send_keycode(LGUI(N6));
+    send_keycode(LG(N6));
 }
 
 /* ================================================================== */
