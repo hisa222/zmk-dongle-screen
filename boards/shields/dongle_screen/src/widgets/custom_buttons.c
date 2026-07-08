@@ -219,42 +219,42 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
     lv_obj_align(widget->title_label, LV_ALIGN_TOP_MID, 0, 14);
 
     /* ---- BTN-1 ---- */
-    custom_button_1_bundle.visual_btn = make_visual_btn(parent, "BTN-1",
+    custom_button_1_bundle.visual_btn = make_visual_btn(parent, "Cmd-1",
         lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
     if (!custom_button_1_bundle.visual_btn) return -ENOMEM;
     custom_button_1_bundle.hitbox = make_center_hitbox(custom_button_1_bundle.visual_btn, custom_button_1_cb);
     if (!custom_button_1_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-2 ---- */
-    custom_button_2_bundle.visual_btn = make_visual_btn(parent, "BTN-2",
+    custom_button_2_bundle.visual_btn = make_visual_btn(parent, "Cmd-2",
         lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 0, -30);
     if (!custom_button_2_bundle.visual_btn) return -ENOMEM;
     custom_button_2_bundle.hitbox = make_center_hitbox(custom_button_2_bundle.visual_btn, custom_button_2_cb);
     if (!custom_button_2_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-3 ---- */
-    custom_button_3_bundle.visual_btn = make_visual_btn(parent, "BTN-3",
-        lv_color_hex(0x904AE2), LV_ALIGN_CENTER, 90, -30);
+    custom_button_3_bundle.visual_btn = make_visual_btn(parent, "Cmd-3",
+        lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 90, -30);
     if (!custom_button_3_bundle.visual_btn) return -ENOMEM;
     custom_button_3_bundle.hitbox = make_center_hitbox(custom_button_3_bundle.visual_btn, custom_button_3_cb);
     if (!custom_button_3_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-4 ---- */
-    custom_button_4_bundle.visual_btn = make_visual_btn(parent, "BTN-4",
-        lv_color_hex(0x90E24A), LV_ALIGN_CENTER, -90, 50);
+    custom_button_4_bundle.visual_btn = make_visual_btn(parent, "Cmd-4",
+        lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
     if (!custom_button_4_bundle.visual_btn) return -ENOMEM;
     custom_button_4_bundle.hitbox = make_center_hitbox(custom_button_4_bundle.visual_btn, custom_button_4_cb);
     if (!custom_button_4_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-5 ---- */
-    custom_button_5_bundle.visual_btn = make_visual_btn(parent, "BTN-5",
+    custom_button_5_bundle.visual_btn = make_visual_btn(parent, "Cmd-5",
         lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
     if (!custom_button_5_bundle.visual_btn) return -ENOMEM;
     custom_button_5_bundle.hitbox = make_center_hitbox(custom_button_5_bundle.visual_btn, custom_button_5_cb);
     if (!custom_button_5_bundle.hitbox) return -ENOMEM;
 
     /* ---- BTN-6 ---- */
-    custom_button_6_bundle.visual_btn = make_visual_btn(parent, "BTN-6",
+    custom_button_6_bundle.visual_btn = make_visual_btn(parent, "Cmd-6",
         lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, 50);
     if (!custom_button_6_bundle.visual_btn) return -ENOMEM;
     custom_button_6_bundle.hitbox = make_center_hitbox(custom_button_6_bundle.visual_btn, custom_button_6_cb);
