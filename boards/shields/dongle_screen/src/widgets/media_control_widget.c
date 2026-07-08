@@ -29,8 +29,8 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define ACTION_HIT_H 50
 
 /* 枠線の共通色設定 */
-#define BORDER_COLOR_NORMAL  0x666666  /* 通常時: グレー */
-#define BORDER_COLOR_PRESSED 0xFFD700  /* 押下時: ゴールド */
+#define BORDER_COLOR_NORMAL  0xFFFFFF  /* 通常時: White */
+#define BORDER_COLOR_PRESSED 0x00FF00  /* 押下時: Green */
 #define BORDER_WIDTH 2
 
 /* ================================================================== */
@@ -252,42 +252,66 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
 
     /* ---- Brightness Down ---- */
     bri_down_bundle.visual_btn = make_visual_btn(parent, "BRI-",
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
+        #if DONGLE_SCREEN_BUTTONS_MONO
+
+        #else
+            lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
+        #endif
     if (!bri_down_bundle.visual_btn) return -ENOMEM;
     bri_down_bundle.hitbox = make_center_hitbox(bri_down_bundle.visual_btn, bri_down_cb);
     if (!bri_down_bundle.hitbox) return -ENOMEM;
 
     /* ---- Print Screen ---- */
     prtscn_bundle.visual_btn = make_visual_btn(parent, "PRTSC",
-        lv_color_hex(0xE2A64A), LV_ALIGN_CENTER, 0, -30);
+        #if DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
+        #else
+            lv_color_hex(0xE2A64A), LV_ALIGN_CENTER, 0, -30);
+        #endif
     if (!prtscn_bundle.visual_btn) return -ENOMEM;
     prtscn_bundle.hitbox = make_center_hitbox(prtscn_bundle.visual_btn, prtscn_cb);
     if (!prtscn_bundle.hitbox) return -ENOMEM;
 
     /* ---- Brightness Up ---- */
     bri_up_bundle.visual_btn = make_visual_btn(parent, "BRI+",
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, -30);
+        #if DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
+        #else
+            lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, -30);
+        #endif
     if (!bri_up_bundle.visual_btn) return -ENOMEM;
     bri_up_bundle.hitbox = make_center_hitbox(bri_up_bundle.visual_btn, bri_up_cb);
     if (!bri_up_bundle.hitbox) return -ENOMEM;
 
     /* ---- Vol Down ---- */
     vol_down_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_VOLUME_MID,
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, 50);
+        #if DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
+        #else
+            lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, 50);
+        #endif
     if (!vol_down_bundle.visual_btn) return -ENOMEM;
     vol_down_bundle.hitbox = make_center_hitbox(vol_down_bundle.visual_btn, vol_down_cb);
     if (!vol_down_bundle.hitbox) return -ENOMEM;
 
     /* ---- Mute ---- */
     mute_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_MUTE,
-        lv_color_hex(0xE24A4A), LV_ALIGN_CENTER, 0, 50);
+        #if DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
+        #else
+            lv_color_hex(0xE24A4A), LV_ALIGN_CENTER, 0, 50);
+        #endif
     if (!mute_bundle.visual_btn) return -ENOMEM;
     mute_bundle.hitbox = make_center_hitbox(mute_bundle.visual_btn, mute_cb);
     if (!mute_bundle.hitbox) return -ENOMEM;
 
     /* ---- Vol Up ---- */
     vol_up_bundle.visual_btn = make_visual_btn(parent, LV_SYMBOL_VOLUME_MAX,
-        lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, 50);
+        #if DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
+        #else
+            lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, 90, 50);
+        #endif
     if (!vol_up_bundle.visual_btn) return -ENOMEM;
     vol_up_bundle.hitbox = make_center_hitbox(vol_up_bundle.visual_btn, vol_up_cb);
     if (!vol_up_bundle.hitbox) return -ENOMEM;
