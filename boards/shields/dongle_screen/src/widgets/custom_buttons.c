@@ -250,7 +250,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 
     /* ---- BTN-1 ---- */
     custom_button_1_bundle.visual_btn = make_visual_btn(parent, "BTN-1",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
@@ -261,7 +261,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 
     /* ---- BTN-2 ---- */
     custom_button_2_bundle.visual_btn = make_visual_btn(parent, "BTN-2",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
@@ -272,7 +272,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 
     /* ---- BTN-3 ---- */
     custom_button_3_bundle.visual_btn = make_visual_btn(parent, "BTN-3",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, -30);
@@ -283,7 +283,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 
     /* ---- BTN-4 ---- */
     custom_button_4_bundle.visual_btn = make_visual_btn(parent, "BTN-4",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
@@ -294,7 +294,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 
     /* ---- BTN-5 ---- */
     custom_button_5_bundle.visual_btn = make_visual_btn(parent, "BTN-5",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
@@ -305,7 +305,7 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 
     /* ---- BTN-6 ---- */
     custom_button_6_bundle.visual_btn = make_visual_btn(parent, "BTN-6",
-        #if DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x0000), LV_ALIGN_CENTER, -90, -30);
         #else
             lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
