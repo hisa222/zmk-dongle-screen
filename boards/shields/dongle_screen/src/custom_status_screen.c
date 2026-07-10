@@ -280,18 +280,21 @@ static lv_obj_t *create_main_screen(void)
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+    int mbtn_ret = zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+    if (mbtn_ret != 0) {
+        LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
+    }
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
-    lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
-    lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
-    lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
+    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
+    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
+    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, 10);
-    lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, 10);
-    lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, 10);
+    if (main_screen_buttons_widget.main_btn_4) lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, 10);
+    if (main_screen_buttons_widget.main_btn_5) lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, 10);
+    if (main_screen_buttons_widget.main_btn_6) lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, 10);
 #endif
 #endif
 
@@ -342,18 +345,21 @@ static lv_obj_t *create_main_screen(void)
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+    int mbtn_ret = zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+    if (mbtn_ret != 0) {
+        LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
+    }
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
-    lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -30);
-    lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -30);
-    lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -30);
+    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -30);
+    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -30);
+    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -30);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, -30);
-    lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, -30);
-    lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, -30);
+    if (main_screen_buttons_widget.main_btn_4) lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, -30);
+    if (main_screen_buttons_widget.main_btn_5) lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, -30);
+    if (main_screen_buttons_widget.main_btn_6) lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, -30);
 #endif
 #endif
 
