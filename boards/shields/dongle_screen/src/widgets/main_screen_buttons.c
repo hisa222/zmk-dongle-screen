@@ -94,7 +94,10 @@ static struct main_btn_bundle main_button_6_bundle;
 static lv_obj_t *make_main_visual_btn(lv_obj_t *parent, const char *text, lv_color_t bg)
 {
     lv_obj_t *obj = lv_obj_create(parent);
-    if (!obj) return NULL;
+    if (!obj) {
+        LOG_ERR("main_screen_buttons: failed to allocate visual_btn (LVGL memory pool exhausted?)");
+        return NULL;
+    }
 
     lv_obj_set_size(obj, MAIN_BTN_W, MAIN_BTN_H);
 
@@ -119,6 +122,10 @@ static lv_obj_t *make_main_visual_btn(lv_obj_t *parent, const char *text, lv_col
     lv_obj_set_style_border_color(obj, lv_color_hex(MAIN_BORDER_COLOR_PRESSED), LV_STATE_PRESSED);
 
     lv_obj_t *lbl = lv_label_create(obj);
+    if (!lbl) {
+        LOG_ERR("main_screen_buttons: failed to allocate label (LVGL memory pool exhausted?)");
+        return obj; /* ボタン本体はできているので枠だけでも表示させる */
+    }
     lv_label_set_text(lbl, text);
     lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, LV_STATE_DEFAULT);
@@ -219,7 +226,10 @@ static void main_button_6_cb(lv_event_t *e)
 static lv_obj_t *make_main_center_hitbox(lv_obj_t *parent_visual_btn, lv_event_cb_t clicked_cb)
 {
     lv_obj_t *hit = lv_obj_create(parent_visual_btn);
-    if (!hit) return NULL;
+    if (!hit) {
+        LOG_ERR("main_screen_buttons: failed to allocate hitbox (LVGL memory pool exhausted?)");
+        return NULL;
+    }
 
     lv_obj_set_size(hit, MAIN_HIT_W, MAIN_HIT_H);
     lv_obj_center(hit);
@@ -266,21 +276,20 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     if (!main_button_1_bundle.visual_btn) return -ENOMEM;
     main_button_1_bundle.hitbox = make_main_center_hitbox(main_button_1_bundle.visual_btn, main_button_1_cb);
     if (!main_button_1_bundle.hitbox) return -ENOMEM;
+    widget->main_btn_1 = main_button_1_bundle.visual_btn;
 
     /* ---- BTN-2 ---- */
     main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "BTN2", lv_color_hex(0xDCE24A));
     if (!main_button_2_bundle.visual_btn) return -ENOMEM;
     main_button_2_bundle.hitbox = make_main_center_hitbox(main_button_2_bundle.visual_btn, main_button_2_cb);
     if (!main_button_2_bundle.hitbox) return -ENOMEM;
+    widget->main_btn_2 = main_button_2_bundle.visual_btn;
 
     /* ---- BTN-3 ---- */
     main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "BTN3", lv_color_hex(0xE2904A));
     if (!main_button_3_bundle.visual_btn) return -ENOMEM;
     main_button_3_bundle.hitbox = make_main_center_hitbox(main_button_3_bundle.visual_btn, main_button_3_cb);
     if (!main_button_3_bundle.hitbox) return -ENOMEM;
-
-    widget->main_btn_1 = main_button_1_bundle.visual_btn;
-    widget->main_btn_2 = main_button_2_bundle.visual_btn;
     widget->main_btn_3 = main_button_3_bundle.visual_btn;
 #endif /* CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 */
 
@@ -290,21 +299,20 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     if (!main_button_4_bundle.visual_btn) return -ENOMEM;
     main_button_4_bundle.hitbox = make_main_center_hitbox(main_button_4_bundle.visual_btn, main_button_4_cb);
     if (!main_button_4_bundle.hitbox) return -ENOMEM;
+    widget->main_btn_4 = main_button_4_bundle.visual_btn;
 
     /* ---- BTN-5 ---- */
     main_button_5_bundle.visual_btn = make_main_visual_btn(parent, "BTN5", lv_color_hex(0xE24AE2));
     if (!main_button_5_bundle.visual_btn) return -ENOMEM;
     main_button_5_bundle.hitbox = make_main_center_hitbox(main_button_5_bundle.visual_btn, main_button_5_cb);
     if (!main_button_5_bundle.hitbox) return -ENOMEM;
+    widget->main_btn_5 = main_button_5_bundle.visual_btn;
 
     /* ---- BTN-6 ---- */
     main_button_6_bundle.visual_btn = make_main_visual_btn(parent, "BTN6", lv_color_hex(0x4AE290));
     if (!main_button_6_bundle.visual_btn) return -ENOMEM;
     main_button_6_bundle.hitbox = make_main_center_hitbox(main_button_6_bundle.visual_btn, main_button_6_cb);
     if (!main_button_6_bundle.hitbox) return -ENOMEM;
-
-    widget->main_btn_4 = main_button_4_bundle.visual_btn;
-    widget->main_btn_5 = main_button_5_bundle.visual_btn;
     widget->main_btn_6 = main_button_6_bundle.visual_btn;
 #endif /* CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 */
 
