@@ -183,6 +183,14 @@ config DONGLE_SCREEN_NAME_ACTIVE
     help
       If the Keyboard_Name Widget should be active or not
 
+config DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+    bool "Show main screen buttons row 1 (BTN1-3)"
+    default n
+
+config DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+    bool "Show main screen buttons row 2 (BTN4-6)"
+    default n
+
 config ZMK_KEYBOARD_NAME
     default "ErgoSloth"
 
