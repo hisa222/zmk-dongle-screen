@@ -272,21 +272,36 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
     /* ---- BTN-1 ---- */
-    main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "BTN1", lv_color_hex(0x4A90E2));
+    main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "BTN1", 
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000));
+        #else
+            lv_color_hex(0x4AE290));
+        #endif
     if (!main_button_1_bundle.visual_btn) return -ENOMEM;
     main_button_1_bundle.hitbox = make_main_center_hitbox(main_button_1_bundle.visual_btn, main_button_1_cb);
     if (!main_button_1_bundle.hitbox) return -ENOMEM;
     widget->main_btn_1 = main_button_1_bundle.visual_btn;
 
     /* ---- BTN-2 ---- */
-    main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "BTN2", lv_color_hex(0xDCE24A));
+    main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "BTN2", 
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000));
+        #else
+            lv_color_hex(0xDCE24A));
+        #endif
     if (!main_button_2_bundle.visual_btn) return -ENOMEM;
     main_button_2_bundle.hitbox = make_main_center_hitbox(main_button_2_bundle.visual_btn, main_button_2_cb);
     if (!main_button_2_bundle.hitbox) return -ENOMEM;
     widget->main_btn_2 = main_button_2_bundle.visual_btn;
 
     /* ---- BTN-3 ---- */
-    main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "BTN3", lv_color_hex(0xE2904A));
+    main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "BTN3", 
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000));
+        #else
+            lv_color_hex(0xE2904A));
+        #endif
     if (!main_button_3_bundle.visual_btn) return -ENOMEM;
     main_button_3_bundle.hitbox = make_main_center_hitbox(main_button_3_bundle.visual_btn, main_button_3_cb);
     if (!main_button_3_bundle.hitbox) return -ENOMEM;
@@ -295,21 +310,36 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
     /* ---- BTN-4 ---- */
-    main_button_4_bundle.visual_btn = make_main_visual_btn(parent, "BTN4", lv_color_hex(0xE2504A));
+    main_button_4_bundle.visual_btn = make_main_visual_btn(parent, "BTN4", 
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000));
+        #else
+            lv_color_hex(0xE2504A));
+        #endif
     if (!main_button_4_bundle.visual_btn) return -ENOMEM;
     main_button_4_bundle.hitbox = make_main_center_hitbox(main_button_4_bundle.visual_btn, main_button_4_cb);
     if (!main_button_4_bundle.hitbox) return -ENOMEM;
     widget->main_btn_4 = main_button_4_bundle.visual_btn;
 
     /* ---- BTN-5 ---- */
-    main_button_5_bundle.visual_btn = make_main_visual_btn(parent, "BTN5", lv_color_hex(0xE24AE2));
+    main_button_5_bundle.visual_btn = make_main_visual_btn(parent, "BTN5", 
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000));
+        #else
+            lv_color_hex(0xE24AE2));
+        #endif
     if (!main_button_5_bundle.visual_btn) return -ENOMEM;
     main_button_5_bundle.hitbox = make_main_center_hitbox(main_button_5_bundle.visual_btn, main_button_5_cb);
     if (!main_button_5_bundle.hitbox) return -ENOMEM;
     widget->main_btn_5 = main_button_5_bundle.visual_btn;
 
     /* ---- BTN-6 ---- */
-    main_button_6_bundle.visual_btn = make_main_visual_btn(parent, "BTN6", lv_color_hex(0x4AE290));
+    main_button_6_bundle.visual_btn = make_main_visual_btn(parent, "BTN6", 
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+            lv_color_hex(0x000000));
+        #else
+            lv_color_hex(0x4AE290));
+        #endif
     if (!main_button_6_bundle.visual_btn) return -ENOMEM;
     main_button_6_bundle.hitbox = make_main_center_hitbox(main_button_6_bundle.visual_btn, main_button_6_cb);
     if (!main_button_6_bundle.hitbox) return -ENOMEM;
