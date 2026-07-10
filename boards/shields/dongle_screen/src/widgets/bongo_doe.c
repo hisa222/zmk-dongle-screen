@@ -23,7 +23,7 @@ static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 static int64_t last_anim_update_time = 0;
 #define ANIM_UPDATE_INTERVAL_MS 200  // Throttle: max 5 animation checks per second
 
-LV_IMG_DECLARE(bongo_doe_none1);
+LV_IMG_DECLARE(bongo_doe_none);
 LV_IMG_DECLARE(bongo_doe_none2);
 LV_IMG_DECLARE(bongo_doe_left1);
 LV_IMG_DECLARE(bongo_doe_left2);
