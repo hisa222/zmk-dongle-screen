@@ -193,7 +193,7 @@ config DONGLE_SCREEN_BONGO_CAT_ACTIVE
       If the BongoCat Widget should be active or not
 
 config DONGLE_SCREEN_BONGO_BOO_ACTIVE
-    bool "BongoCat Widget active"
+    bool "BongoBoo Widget active"
     default n
     help
       If the BongoBoo Widget should be active or not
@@ -203,6 +203,12 @@ config DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
     default n
     help
       If the BongoSpheal Widget should be active or not
+
+config DONGLE_SCREEN_BONGO_DOE_ACTIVE
+    bool "BongoDoe Widget active"
+    default n
+    help
+      If the BongoDoe Widget should be active or not
 
 config DONGLE_SCREEN_BUTTONS_MONO
     bool "Buttons color setting on screen"
