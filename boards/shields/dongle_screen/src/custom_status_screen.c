@@ -282,7 +282,8 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
     int mbtn_ret = zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
     if (mbtn_ret != 0) {
-        LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
+        /* 確保失敗時は画面全体を赤くして視覚的にわかるようにする（デバッグ用、確認後は削除） */
+        lv_obj_set_style_bg_color(screen, lv_color_hex(0xFF0000), LV_PART_MAIN);
     }
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
