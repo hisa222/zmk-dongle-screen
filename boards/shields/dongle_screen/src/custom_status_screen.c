@@ -240,7 +240,7 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_BOTTOM_MID, 0, 0);
 #endif
 
-#elseif CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 //----------------------------------
+#elif CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 //---------------------------------- 
 
 // both buttons are active
 
