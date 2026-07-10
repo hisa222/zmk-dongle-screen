@@ -63,7 +63,12 @@ static struct zmk_widget_wpm_status wpm_status_widget;
 static struct zmk_widget_mod_status mod_widget;
 #endif
 
-#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
+#if (CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2) && !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
+#include "widgets/main_screen_buttons.h"
+static struct zmk_widget_main_screen_buttons main_screen_buttons_widget;
+#endif
+
+#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 && !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
 #include "widgets/keyboard_name_status.h"
 static struct zmk_widget_keyboard_name_status keyboard_name_status_widget;
 #endif
@@ -173,6 +178,8 @@ static lv_obj_t *create_main_screen(void)
 
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
 
+// some bongo in active
+
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
@@ -233,8 +240,65 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_BOTTOM_MID, 0, 0);
 #endif
 
+#elseif CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 //----------------------------------
+
+// both buttons are active
+
+#if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
+    zmk_widget_output_status_init(&output_status_widget, screen);
+    lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
+                 LV_ALIGN_TOP_MID, 0, 0);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_BATTERY_ACTIVE
+    zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
+    lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget),
+                 LV_ALIGN_TOP_MID, 0, 0);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_WPM_ACTIVE
+    zmk_widget_wpm_status_init(&wpm_status_widget, screen);
+    lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
+                 LV_ALIGN_TOP_LEFT, 20, 0);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
+//    zmk_widget_layer_status_init(&layer_status_widget, screen);
+//    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
+//                 LV_ALIGN_CENTER, 0, 40);
+
+    /* 横スクロールレイヤーウィジェット */
+    zmk_widget_layer_slider_init(&layer_slider_widget, screen);
+    lv_obj_align(zmk_widget_layer_slider_obj(&layer_slider_widget),
+                 LV_ALIGN_CENTER, 0, 60);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
+    zmk_widget_mod_status_init(&mod_widget, screen);
+    lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
+                 LV_ALIGN_CENTER, 0, 100);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+    zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+    lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
+    lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
+    lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+    lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, 10);
+    lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, 10);
+    lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, 10);
+#endif
+#endif
+
 #else //-------------------------------------------------------------------------------------------------------------------
 
+// zero or one button is active
+    
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
@@ -270,11 +334,27 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_CENTER, 0, 90);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE
+#if CONFIG_DONGLE_SCREEN_NAME_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
     /* キーボード名ウィジェット（レイヤー表示の上） */
     zmk_widget_keyboard_name_status_init(&keyboard_name_status_widget, screen);
     lv_obj_align(zmk_widget_keyboard_name_status_obj(&keyboard_name_status_widget),
                  LV_ALIGN_CENTER, 0, -30);   /* layer が y=0 なのでその上 -20px */
+#endif
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+    zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+    lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -30);
+    lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -30);
+    lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -30);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+    lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, -30);
+    lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, -30);
+    lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, -30);
+#endif
 #endif
 
 #endif
