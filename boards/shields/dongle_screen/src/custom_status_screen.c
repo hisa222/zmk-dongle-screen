@@ -84,6 +84,11 @@ static struct zmk_widget_bongo_boo main_bongo_boo_widget;
 static struct zmk_widget_bongo_spheal main_bongo_spheal_widget;
 #endif
 
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
+#include "widgets/bongo_doe.h"
+static struct zmk_widget_bongo_doe main_bongo_doe_widget;
+#endif
+
 static struct zmk_widget_brightness_screen brightness_widget;
 static struct zmk_widget_system_settings system_settings_widget;
 static struct zmk_widget_custom_buttons custom_buttons_widget;
@@ -166,7 +171,7 @@ static lv_obj_t *create_main_screen(void)
 {
     lv_obj_t *screen = make_screen();
 
-#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
+#if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
@@ -219,6 +224,12 @@ static lv_obj_t *create_main_screen(void)
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
     zmk_widget_bongo_spheal_init(&main_bongo_spheal_widget, screen);
     lv_obj_align(zmk_widget_bongo_spheal_obj(&main_bongo_spheal_widget),
+                 LV_ALIGN_BOTTOM_MID, 0, 0);
+#endif
+
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
+    zmk_widget_bongo_doe_init(&main_bongo_doe_widget, screen);
+    lv_obj_align(zmk_widget_bongo_doe_obj(&main_bongo_doe_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
 #endif
 
