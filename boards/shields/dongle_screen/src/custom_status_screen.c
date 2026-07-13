@@ -88,6 +88,9 @@ static struct zmk_widget_bongo_boo main_bongo_boo_widget;
 #include "widgets/bongo_spheal.h"
 #include "widgets/rle_img_decoder.h"
 static struct zmk_widget_bongo_spheal main_bongo_spheal_widget;
+#define MAIN_BUTTONS_ALLOWED 0
+#else
+#define MAIN_BUTTONS_ALLOWED 1
 #endif
 
 #if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
@@ -193,13 +196,13 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_TOP_MID, 0, 10);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_WPM_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+#if CONFIG_DONGLE_SCREEN_WPM_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && !MAIN_BUTTONS_ALLOWED
     zmk_widget_wpm_status_init(&wpm_status_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
                  LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && !MAIN_BUTTONS_ALLOWED
 //    zmk_widget_layer_status_init(&layer_status_widget, screen);
 //    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
 //                 LV_ALIGN_TOP_MID, 0, 50);
@@ -210,13 +213,13 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_TOP_MID, 0, 50);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && MAIN_BUTTONS_ALLOWED
     zmk_widget_layer_status_init(&layer_status_widget, screen);
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && MAIN_BUTTONS_ALLOWED
     int mbtn_ret = zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
     if (mbtn_ret != 0) {
         LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
