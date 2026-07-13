@@ -350,7 +350,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
     /* ---- BTN-1 ---- */
-    main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "UnLock", 
+    main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "UnLck", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000));
         #else
