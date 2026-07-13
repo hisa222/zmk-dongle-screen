@@ -66,6 +66,43 @@ static void send_keycode(uint32_t keycode)
     zmk_behavior_invoke_binding(&binding, event, false);  /* release */
 }
 
+static void main_btn_key_press(uint32_t keycode)
+{
+    struct zmk_behavior_binding binding = {
+        .behavior_dev = DEVICE_DT_NAME(DT_NODELABEL(kp)),
+        .param1 = keycode,
+        .param2 = 0,
+    };
+    struct zmk_behavior_binding_event event = {
+        .layer = 0,
+        .position = 0,
+        .timestamp = k_uptime_get(),
+#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+        .source = 0,
+#endif
+    };
+    zmk_behavior_invoke_binding(&binding, event, true);
+}
+
+static void main_btn_key_release(uint32_t keycode)
+{
+    struct zmk_behavior_binding binding = {
+        .behavior_dev = DEVICE_DT_NAME(DT_NODELABEL(kp)),
+        .param1 = keycode,
+        .param2 = 0,
+    };
+    struct zmk_behavior_binding_event event = {
+        .layer = 0,
+        .position = 0,
+        .timestamp = k_uptime_get(),
+#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+        .source = 0,
+#endif
+    };
+    zmk_behavior_invoke_binding(&binding, event, false);
+}
+
+
 /* ================================================================== */
 /* Widget-private state                                                */
 /* ================================================================== */
