@@ -217,6 +217,11 @@ static lv_obj_t *create_main_screen(void)
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+    int mbtn_ret = zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
+    if (mbtn_ret != 0) {
+        LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
+    }
+    
     if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
     if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
     if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
@@ -251,66 +256,6 @@ static lv_obj_t *create_main_screen(void)
     zmk_widget_bongo_doe_init(&main_bongo_doe_widget, screen);
     lv_obj_align(zmk_widget_bongo_doe_obj(&main_bongo_doe_widget),
                  LV_ALIGN_BOTTOM_MID, 0, 0);
-#endif
-
-#elif CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 //---------------------------------- 
-
-// both buttons are active
-
-#if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
-    zmk_widget_output_status_init(&output_status_widget, screen);
-    lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
-                 LV_ALIGN_TOP_MID, 0, 0);
-#endif
-
-#if CONFIG_DONGLE_SCREEN_BATTERY_ACTIVE
-    zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
-    lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget),
-                 LV_ALIGN_TOP_MID, 0, 0);
-#endif
-
-#if CONFIG_DONGLE_SCREEN_WPM_ACTIVE
-    zmk_widget_wpm_status_init(&wpm_status_widget, screen);
-    lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
-                 LV_ALIGN_TOP_LEFT, 20, 0);
-#endif
-
-#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
-//    zmk_widget_layer_status_init(&layer_status_widget, screen);
-//    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
-//                 LV_ALIGN_CENTER, 0, 40);
-
-    /* 横スクロールレイヤーウィジェット */
-    zmk_widget_layer_slider_init(&layer_slider_widget, screen);
-    lv_obj_align(zmk_widget_layer_slider_obj(&layer_slider_widget),
-                 LV_ALIGN_CENTER, 0, 60);
-#endif
-
-#if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
-    zmk_widget_mod_status_init(&mod_widget, screen);
-    lv_obj_align(zmk_widget_mod_status_obj(&mod_widget),
-                 LV_ALIGN_CENTER, 0, 100);
-#endif
-
-#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    int mbtn_ret = zmk_widget_main_screen_buttons_init(&main_screen_buttons_widget, screen);
-    if (mbtn_ret != 0) {
-        /* 確保失敗時は画面全体を赤くして視覚的にわかるようにする（デバッグ用、確認後は削除） */
-        // lv_obj_set_style_bg_color(screen, lv_color_hex(0xFF0000), LV_PART_MAIN);
-    }
-
-#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
-    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
-    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
-    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
-#endif
-/*
-#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    if (main_screen_buttons_widget.main_btn_4) lv_obj_align(main_screen_buttons_widget.main_btn_4, LV_ALIGN_CENTER, -90, 10);
-    if (main_screen_buttons_widget.main_btn_5) lv_obj_align(main_screen_buttons_widget.main_btn_5, LV_ALIGN_CENTER,   0, 10);
-    if (main_screen_buttons_widget.main_btn_6) lv_obj_align(main_screen_buttons_widget.main_btn_6, LV_ALIGN_CENTER,  90, 10);
-#endif
-*/
 #endif
 
 #else //-------------------------------------------------------------------------------------------------------------------
