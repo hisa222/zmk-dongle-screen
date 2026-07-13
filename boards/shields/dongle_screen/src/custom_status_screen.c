@@ -214,6 +214,12 @@ static lv_obj_t *create_main_screen(void)
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
                  LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
+
+#if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
+    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
+    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
+#endif
     
 /*
 #if CONFIG_DONGLE_SCREEN_MODIFIER_ACTIVE
