@@ -190,14 +190,14 @@ for (int i = 0; i < ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
         lv_obj_align(
             battery_label,
             LV_ALIGN_CENTER,
-            -4,
+            -8,
             0
         );
     } else {
         lv_obj_align(
             battery_label,
             LV_ALIGN_CENTER,
-            4,
+            8,
             0
         );
     }
