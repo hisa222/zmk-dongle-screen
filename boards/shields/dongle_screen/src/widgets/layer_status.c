@@ -88,11 +88,11 @@ ZMK_SUBSCRIPTION(widget_layer_status, zmk_layer_state_changed);
 int zmk_widget_layer_status_init(struct zmk_widget_layer_status *widget, lv_obj_t *parent)
 {
     widget->obj = lv_label_create(parent);
-
+#if (CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE) && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+#else
     lv_obj_set_style_text_font(widget->obj, &lv_font_montserrat_40, 0);
-
+#endif
     sys_slist_append(&widgets, &widget->node);
-
     widget_layer_status_init();
     return 0;
 }
