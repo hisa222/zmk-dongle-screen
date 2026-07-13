@@ -165,13 +165,56 @@ static void main_btn_press_end_cb(lv_event_t *e)
 /* 送信キーコードや処理内容は自由に書き換えてください。                 */
 /* ================================================================== */
 
+static void trigger_close_window(void)
+{
+    main_btn_send_mod_press(MOD_LALT);
+    k_msleep(100);
+
+    main_btn_send_keycode(SPACE);
+    k_msleep(100);
+    main_btn_send_keycode(N);
+    k_msleep(100);
+
+    main_btn_send_mod_release(MOD_LALT);
+    k_msleep(100);
+}
+
+static void trigger_unlock(void)
+{
+    main_btn_send_keycode(ENTER);
+    k_msleep(1000);
+    main_btn_send_keycode(N0);
+    k_msleep(50);
+    main_btn_send_keycode(N2);
+    k_msleep(50);
+    main_btn_send_keycode(N2);
+    k_msleep(50);
+    main_btn_send_keycode(N2);
+    k_msleep(50);
+    main_btn_send_keycode(ENTER);
+    k_msleep(50);
+}
+
+static void trigger_sleep(void)
+{
+    main_btn_send_mod_press(MOD_LGUI);
+    k_msleep(100);
+    main_btn_send_keycode(X);
+    k_msleep(100);
+    main_btn_send_mod_release(MOD_LGUI);
+    k_msleep(100);
+    main_btn_send_keycode(U);
+    k_msleep(100);
+    main_btn_send_keycode(S);
+}
+
 static void main_button_1_cb(lv_event_t *e)
 {
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    /* TODO: ここに BTN1 の機能を実装してください */
-    main_btn_send_keycode(N1);
+
+    trigger_unlock();
 }
 
 static void main_button_2_cb(lv_event_t *e)
@@ -179,8 +222,8 @@ static void main_button_2_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    /* TODO: ここに BTN2 の機能を実装してください */
-    main_btn_send_keycode(N2);
+    
+    trigger_close_window();
 }
 
 static void main_button_3_cb(lv_event_t *e)
@@ -188,8 +231,8 @@ static void main_button_3_cb(lv_event_t *e)
     if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
     if (touch_handler_is_swiping()) { ui_interaction_active = false; return; }
     ui_interaction_active = false;
-    /* TODO: ここに BTN3 の機能を実装してください */
-    main_btn_send_keycode(N3);
+    
+    trigger_sleep();
 }
 
 static void main_button_4_cb(lv_event_t *e)
@@ -272,7 +315,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
     /* ---- BTN-1 ---- */
-    main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "BTN1", 
+    main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "UnLock", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000));
         #else
@@ -284,7 +327,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     widget->main_btn_1 = main_button_1_bundle.visual_btn;
 
     /* ---- BTN-2 ---- */
-    main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "BTN2", 
+    main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "Close", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000));
         #else
@@ -296,7 +339,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     widget->main_btn_2 = main_button_2_bundle.visual_btn;
 
     /* ---- BTN-3 ---- */
-    main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "BTN3", 
+    main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "Sleep", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
             lv_color_hex(0x000000));
         #else
