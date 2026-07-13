@@ -212,7 +212,7 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
     zmk_widget_layer_status_init(&layer_status_widget, screen);
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
-                 LV_ALIGN_TOP_LEFT, 0, 0);
+                 LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
     
 /*
