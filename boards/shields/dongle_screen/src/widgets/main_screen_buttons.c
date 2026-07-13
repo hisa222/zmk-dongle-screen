@@ -71,6 +71,42 @@ static void main_btn_send_keycode(uint32_t keycode)
     zmk_behavior_invoke_binding(&binding, event, false);  /* release */
 }
 
+static void main_btn_key_press(uint32_t keycode)
+{
+    struct zmk_behavior_binding binding = {
+        .behavior_dev = DEVICE_DT_NAME(DT_NODELABEL(kp)),
+        .param1 = keycode,
+        .param2 = 0,
+    };
+    struct zmk_behavior_binding_event event = {
+        .layer = 0,
+        .position = 0,
+        .timestamp = k_uptime_get(),
+#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+        .source = 0,
+#endif
+    };
+    zmk_behavior_invoke_binding(&binding, event, true);
+}
+
+static void main_btn_key_release(uint32_t keycode)
+{
+    struct zmk_behavior_binding binding = {
+        .behavior_dev = DEVICE_DT_NAME(DT_NODELABEL(kp)),
+        .param1 = keycode,
+        .param2 = 0,
+    };
+    struct zmk_behavior_binding_event event = {
+        .layer = 0,
+        .position = 0,
+        .timestamp = k_uptime_get(),
+#if IS_ENABLED(CONFIG_ZMK_SPLIT)
+        .source = 0,
+#endif
+    };
+    zmk_behavior_invoke_binding(&binding, event, false);
+}
+
 /* ================================================================== */
 /* Widget-private state                                                */
 /* ================================================================== */
@@ -165,20 +201,6 @@ static void main_btn_press_end_cb(lv_event_t *e)
 /* 送信キーコードや処理内容は自由に書き換えてください。                 */
 /* ================================================================== */
 
-static void trigger_close_window(void)
-{
-    main_btn_send_mod_press(MOD_LALT);
-    k_msleep(100);
-
-    main_btn_send_keycode(SPACE);
-    k_msleep(100);
-    main_btn_send_keycode(N);
-    k_msleep(100);
-
-    main_btn_send_mod_release(MOD_LALT);
-    k_msleep(100);
-}
-
 static void trigger_unlock(void)
 {
     main_btn_send_keycode(ENTER);
@@ -195,13 +217,26 @@ static void trigger_unlock(void)
     k_msleep(50);
 }
 
+static void trigger_close_window(void)
+{
+    main_btn_key_press(LALT);
+    k_msleep(100);
+
+    main_btn_send_keycode(SPACE);
+    k_msleep(100);
+    main_btn_send_keycode(N);;
+    k_msleep(100);
+
+    main_btn_key_release(LALT);
+}
+
 static void trigger_sleep(void)
 {
-    main_btn_send_mod_press(MOD_LGUI);
+    main_btn_key_press(MOD_LGUI);
     k_msleep(100);
     main_btn_send_keycode(X);
     k_msleep(100);
-    main_btn_send_mod_release(MOD_LGUI);
+    main_btn_key_release(MOD_LGUI);
     k_msleep(100);
     main_btn_send_keycode(U);
     k_msleep(100);
