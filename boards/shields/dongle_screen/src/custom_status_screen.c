@@ -178,7 +178,7 @@ static lv_obj_t *create_main_screen(void)
 
 #if CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
 
-// some bongo in active
+// some bongo is active
 
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
@@ -192,13 +192,13 @@ static lv_obj_t *create_main_screen(void)
                  LV_ALIGN_TOP_MID, 0, 10);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_WPM_ACTIVE
+#if CONFIG_DONGLE_SCREEN_WPM_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
     zmk_widget_wpm_status_init(&wpm_status_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
                  LV_ALIGN_TOP_LEFT, 20, 20);
 #endif
 
-#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE
+#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && !CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
 //    zmk_widget_layer_status_init(&layer_status_widget, screen);
 //    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
 //                 LV_ALIGN_TOP_MID, 0, 50);
@@ -207,6 +207,12 @@ static lv_obj_t *create_main_screen(void)
     zmk_widget_layer_slider_init(&layer_slider_widget, screen);
     lv_obj_align(zmk_widget_layer_slider_obj(&layer_slider_widget),
                  LV_ALIGN_TOP_MID, 0, 50);
+#endif
+
+#if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
+    zmk_widget_layer_status_init(&layer_status_widget, screen);
+    lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
+                 LV_ALIGN_TOP_LEFT, 0, 0);
 #endif
     
 /*
