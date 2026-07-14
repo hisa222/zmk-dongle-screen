@@ -380,6 +380,10 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "Close", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
+        #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE)
+            lv_color_hex(0xFF0000));
+        #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+            lv_color_hex(0xF6A792));
         #else
             lv_color_hex(0xDCE24A));
         #endif
