@@ -15,6 +15,15 @@
  *     | main_btn_4 | | main_btn_5 | | main_btn_6 |
  */
 
+/*
+
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
+#endif
+
+#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
+#endif
+*/
+
 #include "main_screen_buttons.h"
 #include "../custom_status_screen.h"
 #include "../touch_handler.h"
@@ -38,7 +47,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define MAIN_HIT_W 60
 #define MAIN_HIT_H 50
 
-#if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+#if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
 #define MAIN_BORDER_COLOR_NORMAL  0xFFFFFF  /* 通常時: White */
 #else
 #define MAIN_BORDER_COLOR_NORMAL  0x000000  /* 通常時: Black */
@@ -163,7 +172,11 @@ static lv_obj_t *make_main_visual_btn(lv_obj_t *parent, const char *text, lv_col
         return obj; /* ボタン本体はできているので枠だけでも表示させる */
     }
     lv_label_set_text(lbl, text);
-    lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
+    #if (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+        lv_obj_set_style_text_color(lbl, lv_color_hex(0x000000), LV_STATE_DEFAULT);
+    #else
+        lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
+    #endif
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_center(lbl);
 
@@ -351,8 +364,10 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1
     /* ---- BTN-1 ---- */
     main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "UnLck", 
-        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
+        #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+            lv_color_hex(0xFFFFFF));
         #else
             lv_color_hex(0x4AE290));
         #endif
@@ -363,7 +378,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
     /* ---- BTN-2 ---- */
     main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "Close", 
-        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
         #else
             lv_color_hex(0xDCE24A));
@@ -375,8 +390,10 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
     /* ---- BTN-3 ---- */
     main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "Sleep", 
-        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
+        #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+            lv_color_hex(0xFFFFFF));
         #else
             lv_color_hex(0xE2904A));
         #endif
@@ -389,7 +406,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
     /* ---- BTN-4 ---- */
     main_button_4_bundle.visual_btn = make_main_visual_btn(parent, "BTN4", 
-        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
         #else
             lv_color_hex(0xE2504A));
@@ -401,7 +418,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
     /* ---- BTN-5 ---- */
     main_button_5_bundle.visual_btn = make_main_visual_btn(parent, "BTN5", 
-        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
         #else
             lv_color_hex(0xE24AE2));
@@ -413,7 +430,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 
     /* ---- BTN-6 ---- */
     main_button_6_bundle.visual_btn = make_main_visual_btn(parent, "BTN6", 
-        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
+        #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
         #else
             lv_color_hex(0x4AE290));
