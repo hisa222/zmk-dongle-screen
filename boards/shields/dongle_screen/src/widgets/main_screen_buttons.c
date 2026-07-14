@@ -15,15 +15,6 @@
  *     | main_btn_4 | | main_btn_5 | | main_btn_6 |
  */
 
-/*
-
-#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-#endif
-
-#if !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-#endif
-*/
-
 #include "main_screen_buttons.h"
 #include "../custom_status_screen.h"
 #include "../touch_handler.h"
