@@ -225,9 +225,9 @@ static lv_obj_t *create_main_screen(void)
         LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
     }
     
-    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
-    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
-    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
+    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -45);
+    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -45);
+    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -45);
 #endif
     
 /*
