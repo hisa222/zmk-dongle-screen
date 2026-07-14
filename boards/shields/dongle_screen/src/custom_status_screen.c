@@ -187,7 +187,7 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_OUTPUT_ACTIVE
     zmk_widget_output_status_init(&output_status_widget, screen);
     lv_obj_align(zmk_widget_output_status_obj(&output_status_widget),
-                 LV_ALIGN_TOP_MID, 0, 10);
+                 LV_ALIGN_TOP_MID, 0, 0);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_BATTERY_ACTIVE
@@ -199,7 +199,7 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_WPM_ACTIVE && (!CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || !MAIN_BUTTONS_ALLOWED)
     zmk_widget_wpm_status_init(&wpm_status_widget, screen);
     lv_obj_align(zmk_widget_wpm_status_obj(&wpm_status_widget),
-                 LV_ALIGN_TOP_LEFT, 20, 20);
+                 LV_ALIGN_TOP_LEFT, 20, 10);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && (!CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || !MAIN_BUTTONS_ALLOWED)
@@ -216,7 +216,7 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_LAYER_ACTIVE && CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && MAIN_BUTTONS_ALLOWED
     zmk_widget_layer_status_init(&layer_status_widget, screen);
     lv_obj_align(zmk_widget_layer_status_obj(&layer_status_widget),
-                 LV_ALIGN_TOP_LEFT, 20, 20);
+                 LV_ALIGN_TOP_LEFT, 20, 10);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 && MAIN_BUTTONS_ALLOWED
@@ -225,9 +225,9 @@ static lv_obj_t *create_main_screen(void)
         LOG_ERR("main_screen_buttons init failed: %d", mbtn_ret);
     }
     
-    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -45);
-    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -45);
-    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -45);
+    if (main_screen_buttons_widget.main_btn_1) lv_obj_align(main_screen_buttons_widget.main_btn_1, LV_ALIGN_CENTER, -90, -50);
+    if (main_screen_buttons_widget.main_btn_2) lv_obj_align(main_screen_buttons_widget.main_btn_2, LV_ALIGN_CENTER,   0, -50);
+    if (main_screen_buttons_widget.main_btn_3) lv_obj_align(main_screen_buttons_widget.main_btn_3, LV_ALIGN_CENTER,  90, -50);
 #endif
     
 /*
