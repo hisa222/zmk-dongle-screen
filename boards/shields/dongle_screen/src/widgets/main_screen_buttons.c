@@ -26,6 +26,11 @@
 #include <zmk/behavior.h>
 #include <dt-bindings/zmk/keys.h>
 
+#if DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL && !(CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE)
+#define TEXT_COLORFUL 1
+#else
+#define TEXT_COLORFUL 0
+#endif
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* ================================================================== */
@@ -127,50 +132,35 @@ static struct main_btn_bundle main_button_6_bundle;
 /* Visual button helper                                                */
 /* ================================================================== */
 
-static lv_obj_t *make_main_visual_btn(lv_obj_t *parent, const char *text, lv_color_t bg)
+static lv_obj_t *make_main_visual_btn(lv_obj_t *parent, const char *text,
+                                       lv_color_t bg, lv_color_t text_color, lv_color_t border_color)
 {
     lv_obj_t *obj = lv_obj_create(parent);
     if (!obj) {
         LOG_ERR("main_screen_buttons: failed to allocate visual_btn (LVGL memory pool exhausted?)");
         return NULL;
     }
-
     lv_obj_set_size(obj, MAIN_BTN_W, MAIN_BTN_H);
-
-    /*
-     * 初期位置は仮置き（中央に重ねて生成）。
-     * 実際の配置は custom_status_screen.c 側で
-     * lv_obj_align(widget.main_btn_N, ...) を呼んで編集してください。
-     */
     lv_obj_align(obj, LV_ALIGN_CENTER, 0, 0);
-
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
-
     lv_obj_set_style_bg_color(obj, bg, LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
     lv_obj_set_style_radius(obj, 12, LV_STATE_DEFAULT);
     lv_obj_set_style_pad_all(obj, 0, LV_STATE_DEFAULT);
-
     lv_obj_set_style_border_width(obj, MAIN_BORDER_WIDTH, LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(obj, lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(obj, lv_color_hex(border_color), LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(obj, lv_color_hex(MAIN_BORDER_COLOR_PRESSED), LV_STATE_PRESSED);
-
     lv_obj_t *lbl = lv_label_create(obj);
     if (!lbl) {
         LOG_ERR("main_screen_buttons: failed to allocate label (LVGL memory pool exhausted?)");
         return obj; /* ボタン本体はできているので枠だけでも表示させる */
     }
     lv_label_set_text(lbl, text);
-    #if (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
-        lv_obj_set_style_text_color(lbl, lv_color_hex(0x000000), LV_STATE_DEFAULT);
-    #else
-        lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
-    #endif
+    lv_obj_set_style_text_color(lbl, text_color, LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_center(lbl);
-
     return obj;
 }
 
@@ -356,11 +346,13 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     /* ---- BTN-1 ---- */
     main_button_1_bundle.visual_btn = make_main_visual_btn(parent, "UnLck", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-            lv_color_hex(0x000000));
+            lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
-            lv_color_hex(0xFFFFFF));
+            lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+        #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0x4AE290), lv_color_hex(0x4AE290));
         #else
-            lv_color_hex(0x4AE290));
+            lv_color_hex(0x4AE290), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #endif
     if (!main_button_1_bundle.visual_btn) return -ENOMEM;
     main_button_1_bundle.hitbox = make_main_center_hitbox(main_button_1_bundle.visual_btn, main_button_1_cb);
@@ -370,13 +362,15 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     /* ---- BTN-2 ---- */
     main_button_2_bundle.visual_btn = make_main_visual_btn(parent, "Close", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-            lv_color_hex(0x000000));
+            lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE)
-            lv_color_hex(0xFF0000));
+            lv_color_hex(0xFF0000), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
-            lv_color_hex(0xF05C0A));
+            lv_color_hex(0xF05C0A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+        #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0xDCE24A), lv_color_hex(0xDCE24A));
         #else
-            lv_color_hex(0xDCE24A));
+            lv_color_hex(0xDCE24A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #endif
     if (!main_button_2_bundle.visual_btn) return -ENOMEM;
     main_button_2_bundle.hitbox = make_main_center_hitbox(main_button_2_bundle.visual_btn, main_button_2_cb);
@@ -386,11 +380,13 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     /* ---- BTN-3 ---- */
     main_button_3_bundle.visual_btn = make_main_visual_btn(parent, "Sleep", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-            lv_color_hex(0x000000));
+            lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
-            lv_color_hex(0xFFFFFF));
+            lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+        #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0xE2904A), lv_color_hex(0xE2904A));
         #else
-            lv_color_hex(0xE2904A));
+            lv_color_hex(0xE2904A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #endif
     if (!main_button_3_bundle.visual_btn) return -ENOMEM;
     main_button_3_bundle.hitbox = make_main_center_hitbox(main_button_3_bundle.visual_btn, main_button_3_cb);
@@ -399,7 +395,8 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
 #endif /* CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 */
 
 #if CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
-    /* ---- BTN-4 ---- */
+/*
+    // ---- BTN-4 ----
     main_button_4_bundle.visual_btn = make_main_visual_btn(parent, "BTN4", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
@@ -411,7 +408,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     if (!main_button_4_bundle.hitbox) return -ENOMEM;
     widget->main_btn_4 = main_button_4_bundle.visual_btn;
 
-    /* ---- BTN-5 ---- */
+    // ---- BTN-5 ----
     main_button_5_bundle.visual_btn = make_main_visual_btn(parent, "BTN5", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
@@ -423,7 +420,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     if (!main_button_5_bundle.hitbox) return -ENOMEM;
     widget->main_btn_5 = main_button_5_bundle.visual_btn;
 
-    /* ---- BTN-6 ---- */
+    // ---- BTN-6 ----
     main_button_6_bundle.visual_btn = make_main_visual_btn(parent, "BTN6", 
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000));
@@ -434,7 +431,7 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     main_button_6_bundle.hitbox = make_main_center_hitbox(main_button_6_bundle.visual_btn, main_button_6_cb);
     if (!main_button_6_bundle.hitbox) return -ENOMEM;
     widget->main_btn_6 = main_button_6_bundle.visual_btn;
-#endif /* CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2 */
-
+#endif // CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+*/
     return 0;
 }
