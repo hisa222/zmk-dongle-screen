@@ -47,6 +47,12 @@
 #include <zephyr/sys/reboot.h>
 #include <errno.h>
 
+#if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL && !(CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+#define TEXT_COLORFUL 1
+#else
+#define TEXT_COLORFUL 0
+#endif
+
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* ================================================================== */
@@ -93,6 +99,8 @@ static struct action_btn_bundle reset_bundle;
 static lv_obj_t *make_visual_btn(lv_obj_t *parent,
                                  const char *text,
                                  lv_color_t bg,
+                                 lv_color_t text_color,
+                                 lv_color_t border_color,
                                  lv_align_t align,
                                  lv_coord_t x_off,
                                  lv_coord_t y_off)
@@ -120,14 +128,14 @@ static lv_obj_t *make_visual_btn(lv_obj_t *parent,
     /* 枠線: 通常時 */
     lv_obj_set_style_border_width(obj, BORDER_WIDTH, LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(obj, lv_color_hex(BORDER_COLOR_NORMAL), LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(obj, border_color, LV_STATE_DEFAULT);
 
     /* 枠線: 押下時（手動で LV_STATE_PRESSED を付与したときに適用される） */
     lv_obj_set_style_border_color(obj, lv_color_hex(BORDER_COLOR_PRESSED), LV_STATE_PRESSED);
 
     lv_obj_t *lbl = lv_label_create(obj);
     lv_label_set_text(lbl, text);
-    lv_obj_set_style_text_color(lbl, lv_color_hex(0xFFFFFF), LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(lbl, text_color, LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(lbl, &lv_font_montserrat_20, LV_STATE_DEFAULT);
     lv_obj_center(lbl);
 
@@ -298,9 +306,11 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         parent,
         "Enter Bootloader",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000),
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
+        #elif TEXT_COLORFUL
+        lv_color_hex(0x000000), lv_color_hex(0x4A90E2), lv_color_hex(0x4A90E2),
         #else
-        lv_color_hex(0x4A90E2),
+        lv_color_hex(0x4A90E2), lv_color_hex(0xFFFFFF), lv_color_hex(0x000000),
         #endif
         LV_ALIGN_CENTER, 0, -52);
     if (!boot_bundle.visual_btn) {
@@ -317,9 +327,11 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         parent,
         "System Reset",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000),
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
+        #elif TEXT_COLORFUL
+        lv_color_hex(0x000000), lv_color_hex(0xE24A4A), lv_color_hex(0xE24A4A),
         #else
-        lv_color_hex(0xE24A4A),
+        lv_color_hex(0xE24A4A), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
         #endif
         LV_ALIGN_CENTER, 0, 52);
     if (!reset_bundle.visual_btn) {
