@@ -224,6 +224,12 @@ config DONGLE_SCREEN_BUTTONS_MONO
     help
       If you like monochrome, select y
 
+config DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
+    bool "Buttons color setting on screen"
+    default n
+    help
+      If you like black buttons with colorful text, select y
+
 config DONGLE_SCREEN_AMBIENT_LIGHT
     bool "Enable automatic brightness via ambient light sensor"
     default n
