@@ -348,7 +348,11 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+            #if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
+                lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF));
+            #else
             lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+            #endif
         #elif TEXT_COLORFUL
             lv_color_hex(0x000000), lv_color_hex(0x4AE290), lv_color_hex(0x4AE290));
         #else
@@ -364,9 +368,17 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE)
+            #if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
+                lv_color_hex(0x000000), lv_color_hex(0xFF0000), lv_color_hex(0xFFFFFF));
+            #else
             lv_color_hex(0xFF0000), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+            #endif
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+            #if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
+                lv_color_hex(0x000000), lv_color_hex(0xF05C0A), lv_color_hex(0xF05C0A));
+            #else
             lv_color_hex(0xF05C0A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+            #endif
         #elif TEXT_COLORFUL
             lv_color_hex(0x000000), lv_color_hex(0xDCE24A), lv_color_hex(0xDCE24A));
         #else
@@ -382,7 +394,11 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
             lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
         #elif (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE) || (!CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+            #if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
+                lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF));
+            #else
             lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL));
+            #endif
         #elif TEXT_COLORFUL
             lv_color_hex(0x000000), lv_color_hex(0xE2904A), lv_color_hex(0xE2904A));
         #else
