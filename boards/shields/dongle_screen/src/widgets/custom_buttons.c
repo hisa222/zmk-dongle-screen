@@ -21,6 +21,12 @@
 #include <zmk/behavior.h>
 #include <dt-bindings/zmk/keys.h>
 
+#if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL && !(CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
+#define TEXT_COLORFUL 1
+#else
+#define TEXT_COLORFUL 0
+#endif
+
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* ================================================================== */
@@ -123,7 +129,7 @@ static struct action_btn_bundle custom_button_6_bundle;
 /* ================================================================== */
 
 static lv_obj_t *make_visual_btn(lv_obj_t *parent, const char *text,
-                                 lv_color_t bg, lv_color_t text_color,
+                                 lv_color_t bg, lv_color_t text_color, lv_color_t border_color,
                                  lv_align_t align,
                                  lv_coord_t x_off, lv_coord_t y_off)
 {
@@ -143,7 +149,7 @@ static lv_obj_t *make_visual_btn(lv_obj_t *parent, const char *text,
 
     lv_obj_set_style_border_width(obj, BORDER_WIDTH, LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(obj, lv_color_hex(BORDER_COLOR_NORMAL), LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(obj, border_color, LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(obj, lv_color_hex(BORDER_COLOR_PRESSED), LV_STATE_PRESSED);
 
     lv_obj_t *lbl = lv_label_create(obj);
@@ -289,17 +295,19 @@ int zmk_widget_custom_buttons_init(struct zmk_widget_custom_buttons *widget,
 /* ---- BTN-1 ---- */
 custom_button_1_bundle.visual_btn = make_visual_btn(parent, "COPY",
     #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, -90, -30);
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, -30);
     #elif CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        lv_color_hex(0x000000), lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
+        lv_color_hex(0x000000), lv_color_hex(0x4A90E2), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
-        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, -30);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, -30);
+    #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0x4A90E2), lv_color_hex(0x4A90E2), LV_ALIGN_CENTER, -90, -30);
     #else
-        lv_color_hex(0x4A90E2), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, -90, -30);
+        lv_color_hex(0x4A90E2), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, -30);
     #endif
 if (!custom_button_1_bundle.visual_btn) return -ENOMEM;
 custom_button_1_bundle.hitbox = make_center_hitbox(custom_button_1_bundle.visual_btn, custom_button_1_cb);
@@ -308,17 +316,19 @@ if (!custom_button_1_bundle.hitbox) return -ENOMEM;
 /* ---- BTN-2 ---- */
 custom_button_2_bundle.visual_btn = make_visual_btn(parent, "PASTE",
     #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 0, -30);
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
     #elif CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        lv_color_hex(0x000000), lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
+        lv_color_hex(0x000000), lv_color_hex(0xDCE24A), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-        lv_color_hex(0xFF0000), lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
+        lv_color_hex(0xFF0000), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
-        lv_color_hex(0xFF7C80), lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
+        lv_color_hex(0xFF7C80), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-        lv_color_hex(0xF05C0A), lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, -30);
+        lv_color_hex(0xF05C0A), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
+    #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0xDCE24A), lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
     #else
-        lv_color_hex(0xDCE24A), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 0, -30);
+        lv_color_hex(0xDCE24A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
     #endif
 if (!custom_button_2_bundle.visual_btn) return -ENOMEM;
 custom_button_2_bundle.hitbox = make_center_hitbox(custom_button_2_bundle.visual_btn, custom_button_2_cb);
@@ -327,17 +337,19 @@ if (!custom_button_2_bundle.hitbox) return -ENOMEM;
 /* ---- BTN-3 ---- */
 custom_button_3_bundle.visual_btn = make_visual_btn(parent, "CUT",
     #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 90, -30);
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, -30);
     #elif CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        lv_color_hex(0x000000), lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, -30);
+        lv_color_hex(0x000000), lv_color_hex(0xE2904A), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
-        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
+        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, -30);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, -30);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, -30);
+    #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0xE2904A), lv_color_hex(0xE2904A), LV_ALIGN_CENTER, 90, -30);
     #else
-        lv_color_hex(0xE2904A), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 90, -30);
+        lv_color_hex(0xE2904A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, -30);
     #endif
 if (!custom_button_3_bundle.visual_btn) return -ENOMEM;
 custom_button_3_bundle.hitbox = make_center_hitbox(custom_button_3_bundle.visual_btn, custom_button_3_cb);
@@ -346,17 +358,19 @@ if (!custom_button_3_bundle.hitbox) return -ENOMEM;
 /* ---- BTN-4 ---- */
 custom_button_4_bundle.visual_btn = make_visual_btn(parent, "UNDO",
     #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, -90, 50);
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, 50);
     #elif CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        lv_color_hex(0x000000), lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
+        lv_color_hex(0x000000), lv_color_hex(0xE2504A), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
-        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
+        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, -90, 50);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, 50);
+    #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0xE2504A), lv_color_hex(0xE2504A), LV_ALIGN_CENTER, -90, 50);
     #else
-        lv_color_hex(0xE2504A), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, -90, 50);
+        lv_color_hex(0xE2504A), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, -90, 50);
     #endif
 if (!custom_button_4_bundle.visual_btn) return -ENOMEM;
 custom_button_4_bundle.hitbox = make_center_hitbox(custom_button_4_bundle.visual_btn, custom_button_4_cb);
@@ -365,17 +379,19 @@ if (!custom_button_4_bundle.hitbox) return -ENOMEM;
 /* ---- BTN-5 ---- */
 custom_button_5_bundle.visual_btn = make_visual_btn(parent, "PRTSC",
     #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 0, 50);
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
     #elif CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        lv_color_hex(0x000000), lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
+        lv_color_hex(0x000000), lv_color_hex(0xE24AE2), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-        lv_color_hex(0xFF0000), lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
+        lv_color_hex(0xFF0000), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
-        lv_color_hex(0xFEEECE), lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
+        lv_color_hex(0xFEEECE), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-        lv_color_hex(0xFFFF00), lv_color_hex(0x000000), LV_ALIGN_CENTER, 0, 50);
+        lv_color_hex(0xFFFF00), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
+    #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0xE24AE2), lv_color_hex(0xE24AE2), LV_ALIGN_CENTER, 0, 50);
     #else
-        lv_color_hex(0xE24AE2), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 0, 50);
+        lv_color_hex(0xE24AE2), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
     #endif
 if (!custom_button_5_bundle.visual_btn) return -ENOMEM;
 custom_button_5_bundle.hitbox = make_center_hitbox(custom_button_5_bundle.visual_btn, custom_button_5_cb);
@@ -384,17 +400,19 @@ if (!custom_button_5_bundle.hitbox) return -ENOMEM;
 /* ---- BTN-6 ---- */
 custom_button_6_bundle.visual_btn = make_visual_btn(parent, "REDO",
     #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
-        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 90, 50);
+        lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
     #elif CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE
-        lv_color_hex(0x000000), lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
+        lv_color_hex(0x000000), lv_color_hex(0x4AE290), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE
-        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
+        lv_color_hex(0x7BDEFD), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE && !CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE
-        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), LV_ALIGN_CENTER, 90, 50);
+        lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
+    #elif TEXT_COLORFUL
+            lv_color_hex(0x000000), lv_color_hex(0x4AE290), lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
     #else
-        lv_color_hex(0x4AE290), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 90, 50);
+        lv_color_hex(0x4AE290), lv_color_hex(0xFFFFFF), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
     #endif
 if (!custom_button_6_bundle.visual_btn) return -ENOMEM;
 custom_button_6_bundle.hitbox = make_center_hitbox(custom_button_6_bundle.visual_btn, custom_button_6_cb);
