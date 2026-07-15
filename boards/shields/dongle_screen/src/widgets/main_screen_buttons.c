@@ -150,7 +150,7 @@ static lv_obj_t *make_main_visual_btn(lv_obj_t *parent, const char *text,
     lv_obj_set_style_pad_all(obj, 0, LV_STATE_DEFAULT);
     lv_obj_set_style_border_width(obj, MAIN_BORDER_WIDTH, LV_STATE_DEFAULT);
     lv_obj_set_style_border_opa(obj, LV_OPA_COVER, LV_STATE_DEFAULT);
-    lv_obj_set_style_border_color(obj, lv_color_hex(border_color), LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(obj, border_color, LV_STATE_DEFAULT);
     lv_obj_set_style_border_color(obj, lv_color_hex(MAIN_BORDER_COLOR_PRESSED), LV_STATE_PRESSED);
     lv_obj_t *lbl = lv_label_create(obj);
     if (!lbl) {
