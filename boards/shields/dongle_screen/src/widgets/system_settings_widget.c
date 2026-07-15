@@ -47,12 +47,6 @@
 #include <zephyr/sys/reboot.h>
 #include <errno.h>
 
-#if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL && !(CONFIG_DONGLE_SCREEN_BUTTONS_MONO || CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_SPHEAL_ACTIVE || CONFIG_DONGLE_SCREEN_BONGO_DOE_ACTIVE)
-#define TEXT_COLORFUL 1
-#else
-#define TEXT_COLORFUL 0
-#endif
-
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 /* ================================================================== */
@@ -307,7 +301,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         "Enter Bootloader",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
         lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
-        #elif TEXT_COLORFUL
+        #elif CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
         lv_color_hex(0x000000), lv_color_hex(0x4A90E2), lv_color_hex(0x4A90E2),
         #else
         lv_color_hex(0x4A90E2), lv_color_hex(0xFFFFFF), lv_color_hex(0x000000),
@@ -328,7 +322,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         "System Reset",
         #if CONFIG_DONGLE_SCREEN_BUTTONS_MONO
         lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
-        #elif TEXT_COLORFUL
+        #elif CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
         lv_color_hex(0x000000), lv_color_hex(0xE24A4A), lv_color_hex(0xE24A4A),
         #else
         lv_color_hex(0xE24A4A), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
