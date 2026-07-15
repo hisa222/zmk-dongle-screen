@@ -432,7 +432,7 @@ custom_button_5_bundle.visual_btn = make_visual_btn(parent, "PRTSC",
         lv_color_hex(0x000000), lv_color_hex(0xE24AE2), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
     #elif !CONFIG_DONGLE_SCREEN_BONGO_CAT_ACTIVE && CONFIG_DONGLE_SCREEN_BONGO_BOO_ACTIVE
         #if CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
-            lv_color_hex(0x000000), lv_color_hex(0xFF0000), lv_color_hex(0xFF0000), LV_ALIGN_CENTER, 0, 50);
+            lv_color_hex(0x000000), lv_color_hex(0xFF0000), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 0, 50);
         #else
         lv_color_hex(0xFF0000), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, 50);
         #endif
