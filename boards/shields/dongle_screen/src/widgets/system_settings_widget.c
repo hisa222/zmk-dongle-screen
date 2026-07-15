@@ -304,7 +304,7 @@ int zmk_widget_system_settings_init(struct zmk_widget_system_settings *widget,
         #elif CONFIG_DONGLE_SCREEN_BUTTONS_TEXT_COLORFUL
         lv_color_hex(0x000000), lv_color_hex(0x4A90E2), lv_color_hex(0x4A90E2),
         #else
-        lv_color_hex(0x4A90E2), lv_color_hex(0xFFFFFF), lv_color_hex(0x000000),
+        lv_color_hex(0x4A90E2), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF),
         #endif
         LV_ALIGN_CENTER, 0, -52);
     if (!boot_bundle.visual_btn) {
