@@ -314,6 +314,7 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
             lv_color_hex(0x000000), lv_color_hex(0xF05C0A), lv_color_hex(0xF05C0A), LV_ALIGN_CENTER, 0, -30);
         #else
         lv_color_hex(0xF05C0A), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
+        #endif
     #elif TEXT_COLORFUL
         lv_color_hex(0x000000), lv_color_hex(0xE24A4A), lv_color_hex(0xE24A4A), LV_ALIGN_CENTER, 0, -30);
     #else
@@ -445,6 +446,7 @@ int zmk_widget_media_control_init(struct zmk_widget_media_control *widget,
             lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 90, 50);
         #else
         lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
+        #endif
     #elif TEXT_COLORFUL
         lv_color_hex(0x000000), lv_color_hex(0xEEEE00), lv_color_hex(0xEEEE00), LV_ALIGN_CENTER, 90, 50);
     #else
