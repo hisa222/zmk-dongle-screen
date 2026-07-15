@@ -226,11 +226,11 @@ static void trigger_close_window(void)
 
 static void trigger_sleep(void)
 {
-    main_btn_key_press(MOD_LGUI);
+    main_btn_key_press(LGUI);
     k_msleep(100);
     main_btn_send_keycode(X);
     k_msleep(100);
-    main_btn_key_release(MOD_LGUI);
+    main_btn_key_release(LGUI);
     k_msleep(100);
     main_btn_send_keycode(U);
     k_msleep(100);
