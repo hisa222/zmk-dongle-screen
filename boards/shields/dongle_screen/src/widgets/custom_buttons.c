@@ -348,6 +348,7 @@ custom_button_2_bundle.visual_btn = make_visual_btn(parent, "PASTE",
             lv_color_hex(0x000000), lv_color_hex(0xF05C0A), lv_color_hex(0xF05C0A), LV_ALIGN_CENTER, 0, -30);
         #else
         lv_color_hex(0xF05C0A), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 0, -30);
+        #endif
     #elif TEXT_COLORFUL
             lv_color_hex(0x000000), lv_color_hex(0xDCE24A), lv_color_hex(0xDCE24A), LV_ALIGN_CENTER, 0, -30);
     #else
@@ -479,6 +480,7 @@ custom_button_6_bundle.visual_btn = make_visual_btn(parent, "REDO",
             lv_color_hex(0x000000), lv_color_hex(0xFFFFFF), lv_color_hex(0xFFFFFF), LV_ALIGN_CENTER, 90, 50);
         #else
         lv_color_hex(0xFFFFFF), lv_color_hex(0x000000), lv_color_hex(MAIN_BORDER_COLOR_NORMAL), LV_ALIGN_CENTER, 90, 50);
+        #endif
     #elif TEXT_COLORFUL
             lv_color_hex(0x000000), lv_color_hex(0x4AE290), lv_color_hex(0x4AE290), LV_ALIGN_CENTER, 90, 50);
     #else
