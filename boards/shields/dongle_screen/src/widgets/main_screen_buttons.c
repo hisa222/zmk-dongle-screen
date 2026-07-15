@@ -431,7 +431,8 @@ int zmk_widget_main_screen_buttons_init(struct zmk_widget_main_screen_buttons *w
     main_button_6_bundle.hitbox = make_main_center_hitbox(main_button_6_bundle.visual_btn, main_button_6_cb);
     if (!main_button_6_bundle.hitbox) return -ENOMEM;
     widget->main_btn_6 = main_button_6_bundle.visual_btn;
-#endif // CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
 */
+#endif // CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW2
+
     return 0;
 }
