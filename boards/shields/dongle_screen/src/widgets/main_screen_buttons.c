@@ -199,13 +199,17 @@ static void trigger_unlock(void)
 {
     main_btn_send_keycode(ENTER);
     k_msleep(1000);
+    main_btn_send_keycode(N3);
+    k_msleep(50);
+    main_btn_send_keycode(N7);
+    k_msleep(50);
+    main_btn_send_keycode(N3);
+    k_msleep(50);
     main_btn_send_keycode(N0);
     k_msleep(50);
-    main_btn_send_keycode(N2);
+    main_btn_send_keycode(N7);
     k_msleep(50);
-    main_btn_send_keycode(N2);
-    k_msleep(50);
-    main_btn_send_keycode(N2);
+    main_btn_send_keycode(N1);
     k_msleep(50);
     main_btn_send_keycode(ENTER);
     k_msleep(50);
