@@ -193,7 +193,7 @@ static lv_obj_t *create_main_screen(void)
 #if CONFIG_DONGLE_SCREEN_BATTERY_ACTIVE
     zmk_widget_dongle_battery_status_init(&dongle_battery_status_widget, screen);
     lv_obj_align(zmk_widget_dongle_battery_status_obj(&dongle_battery_status_widget),
-                 LV_ALIGN_TOP_MID, 0, 10);
+                 LV_ALIGN_TOP_MID, 0, 0);
 #endif
 
 #if CONFIG_DONGLE_SCREEN_WPM_ACTIVE && (!CONFIG_DONGLE_SCREEN_MAIN_BUTTONS_ROW1 || !MAIN_BUTTONS_ALLOWED)
