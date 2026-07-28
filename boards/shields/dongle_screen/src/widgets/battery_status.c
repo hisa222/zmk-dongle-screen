@@ -75,6 +75,16 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
         return;
     }
 
+#if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY)
+    // source == 0 はドングル自身のバッテリー。表示不要なのでスキップ。
+    if (state.source < SOURCE_OFFSET) {
+        return;
+    }
+#endif
+
+    // 周辺機器のインデックスに変換（L/R判定用）
+    uint8_t peripheral_index = state.source - SOURCE_OFFSET;
+
     bool reconnecting = is_peripheral_reconnecting(state.source, state.level);
 
     last_battery_levels[state.source] = state.level;
@@ -108,9 +118,9 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
 
     lv_obj_set_style_text_color(label, color, 0);
 
-    if (state.source == 0) {
+    if (peripheral_index == 0) {
         lv_label_set_text(label, "L");
-    } else if (state.source == 1) {
+    } else if (peripheral_index == 1) {
         lv_label_set_text(label, "R");
     }
 
@@ -174,38 +184,23 @@ for (int i = 0; i < ZMK_SPLIT_CENTRAL_PERIPHERAL_COUNT + SOURCE_OFFSET; i++) {
 
     lv_obj_t *battery_label = lv_label_create(widget->obj);
 
-    lv_obj_set_style_text_font(
-        battery_label,
-        &lv_font_montserrat_20,
-        0
-    );
+    lv_obj_set_style_text_font(battery_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_color(battery_label, lv_color_black(), 0);
 
-    lv_obj_set_style_text_color(
-        battery_label,
-        lv_color_black(),
-        0
-    );
+    int peripheral_index = i - SOURCE_OFFSET;
 
-    if (i == 0) {
-        lv_obj_align(
-            battery_label,
-            LV_ALIGN_CENTER,
-            -8,
-            0
-        );
+    if (peripheral_index == 0) {
+        // 左キーボード
+        lv_obj_align(battery_label, LV_ALIGN_CENTER, -8, 0);
+    } else if (peripheral_index == 1) {
+        // 右キーボード
+        lv_obj_align(battery_label, LV_ALIGN_CENTER, 8, 0);
     } else {
-        lv_obj_align(
-            battery_label,
-            LV_ALIGN_CENTER,
-            8,
-            0
-        );
+        // ドングル自身のバッテリー枠（表示しないので位置はどこでもよい）
+        lv_obj_align(battery_label, LV_ALIGN_CENTER, 0, 0);
     }
 
-    lv_obj_add_flag(
-        battery_label,
-        LV_OBJ_FLAG_HIDDEN
-    );
+    lv_obj_add_flag(battery_label, LV_OBJ_FLAG_HIDDEN);
 
     battery_objects[i] = (struct battery_object){
         .label = battery_label,
