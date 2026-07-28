@@ -75,6 +75,16 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
         return;
     }
 
+#if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY)
+    // source == 0 はドングル自身のバッテリー。表示不要なのでスキップ。
+    if (state.source < SOURCE_OFFSET) {
+        return;
+    }
+#endif
+
+    // 周辺機器のインデックスに変換（L/R判定用）
+    uint8_t peripheral_index = state.source - SOURCE_OFFSET;
+
     bool reconnecting = is_peripheral_reconnecting(state.source, state.level);
 
     last_battery_levels[state.source] = state.level;
@@ -108,9 +118,9 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
 
     lv_obj_set_style_text_color(label, color, 0);
 
-    if (state.source == 0) {
+    if (peripheral_index == 0) {
         lv_label_set_text(label, "L");
-    } else if (state.source == 1) {
+    } else if (peripheral_index == 1) {
         lv_label_set_text(label, "R");
     }
 
